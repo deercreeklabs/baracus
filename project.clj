@@ -1,4 +1,4 @@
-(defproject deercreeklabs/baracus "0.1.0-SNAPSHOT"
+(defproject deercreeklabs/baracus "0.1.0"
   :description
   "Utilities for working with byte arrays in Clojure & Clojurescript"
   :url "http://www.deercreeklabs.com"
