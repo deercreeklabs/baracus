@@ -117,6 +117,17 @@
          (.-length this)
          0))))
 
+;; Make cljs byte-arrays ISeqable
+#?(:cljs (extend-protocol ISeqable
+           js/Int8Array
+           (-seq [o]
+             (array-seq o))))
+
+#?(:cljs (extend-protocol ISeqable
+           js/Uint8Array
+           (-seq [o]
+             (array-seq o))))
+
 (s/defn byte-array->debug-str :- s/Str
   [ba :- ByteArray]
   #?(:clj (str "[" (clojure.string/join "," (map str ba)) "]")
