@@ -130,7 +130,12 @@
 
 (s/defn byte-array->debug-str :- s/Str
   [ba :- ByteArray]
-  #?(:clj (str "[" (clojure.string/join "," (map str ba)) "]")
+  #?(:clj (let [s (map (fn [b]
+                         (cond->> b
+                           (neg? b) (+ 256)
+                           true (str)))
+                       ba)]
+            (str "[" (clojure.string/join ", " s) "]"))
      :cljs (str ba)))
 
 (s/defn slice-byte-array :- ByteArray
@@ -265,6 +270,24 @@
      (-> (.fromBase64 js/ByteBuffer s)
          (.toArrayBuffer)
          (js/Int8Array.))))
+
+(s/defn byte-array->utf8 :- s/Str
+  [ba :- ByteArray]
+  #?(:clj
+     (String. #^bytes ba "UTF-8")
+     :cljs
+     (let [num-bytes (count ba)
+           buf (.wrap js/ByteBuffer (.-buffer ba))]
+       (.readUTF8String buf num-bytes (.-METRICS_BYTES js/ByteBuffer)))))
+
+(s/defn utf8->byte-array :- ByteArray
+  [s :- s/Str]
+  #?(:clj
+     (.getBytes ^String s "UTF-8")
+     :cljs
+     (let [bb (.fromUTF8 js/ByteBuffer s)]
+       (-> (.toArrayBuffer bb)
+           (js/Int8Array.)))))
 
 #?(:cljs
    (defn signed-byte-array->unsigned-byte-array [b]

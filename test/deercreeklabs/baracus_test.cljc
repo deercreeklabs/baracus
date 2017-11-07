@@ -36,6 +36,16 @@
     (is (ba/equivalent-byte-arrays? (ba/byte-array (range 5 10)) s3))
     (is (ba/equivalent-byte-arrays? ba (ba/concat-byte-arrays [s1 s2 s3])))))
 
+(deftest test-utf-conversions
+  (let [data [[[1 2 3] "\1\2\3"]
+              [[44 89 123 66 78] ",Y{BN"]
+              [[206 186 225 189 185 207 131 206 188 206 181] "κόσμε"]]]
+    (doseq [[a expected] data]
+      (let [ba (ba/byte-array a)
+            s (ba/byte-array->utf8 ba)
+            rt (ba/utf8->byte-array s)]
+        (is (= expected s))
+        (is (ba/equivalent-byte-arrays? ba rt))))))
 #?(:cljs
    (deftest test-signed-array-conversions
      (let [s (ba/byte-array [-1 2 -127])
