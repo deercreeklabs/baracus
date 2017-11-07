@@ -1,7 +1,49 @@
+(def externs ["baracus_externs.js"])
+
+(def compiler-defaults
+  {:parallel-build true
+   :static-fns true
+   ;; :pseudo-names true
+   ;; :pretty-print true
+   ;; :infer-externs true
+   })
+
+(defn make-build-conf [id target-kw build-type-kw opt-level main]
+  (let [build-type-str (name build-type-kw)
+        target-str (if target-kw
+                     (name target-kw)
+                     "")
+        node? (= :node target-kw)
+        source-paths (case build-type-kw
+                       :build ["src"]
+                       :test ["src" "test"])
+        build-name (str target-str "_" build-type-str "_" (name opt-level))
+        output-name (case build-type-kw
+                      :build "main.js"
+                      :test "test_main.js")
+        output-dir (str "target/" build-type-str "/" build-name)
+        output-to (str output-dir "/" output-name)
+        source-map (if (= :none opt-level)
+                     true
+                     (str output-dir "/map.js.map"))
+        compiler (cond-> compiler-defaults
+                   true (assoc :optimizations opt-level
+                               :output-to output-to
+                               :output-dir output-dir
+                               :source-map source-map)
+                   main (assoc :main main)
+                   (= :advanced opt-level) (assoc :externs externs)
+                   node? (assoc :target :nodejs))
+        node-test? (and node? (= :test build-type-kw))]
+    (cond-> {:id id
+             :source-paths source-paths
+             :compiler compiler}
+      node-test? (assoc :notify-command ["node" output-to]))))
+
 (defproject deercreeklabs/baracus "0.1.1-SNAPSHOT"
   :description
   "Utilities for working with byte arrays in Clojure & Clojurescript"
-  :url "http://www.deercreeklabs.com"
+  :url "https://github.com/deercreeklabs/baracus"
   :license {:name "Apache License, Version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :lein-release {:scm :git
@@ -13,16 +55,16 @@
   {:dev
    {:global-vars {*warn-on-reflection* true}
     :plugins
-    [[lein-ancient "0.6.12"]
+    [[lein-ancient "0.6.14"]
      [lein-cljsbuild "1.1.7" :exclusions [org.clojure/clojure]]
-     [lein-cloverage "1.0.9" :exclusions [org.clojure/clojure]]
-     [lein-doo "0.1.7"]
+     [lein-cloverage "1.0.10" :exclusions [org.clojure/clojure]]
+     [lein-doo "0.1.8"]
      [lein-npm "0.6.2" :exclusions [com.fasterxml.jackson.core/jackson-core]]
      ;; Because of confusion with a defunct project also called
      ;; lein-release, we exclude lein-release from lein-ancient.
      [lein-release "1.0.9" :upgrade false :exclusions [org.clojure/clojure]]]
     :dependencies
-    [[doo "0.1.7"]]}}
+    [[doo "0.1.8"]]}}
 
   :npm {:devDependencies [[karma "1.7.1"]
                           [karma-chrome-launcher "2.2.0"]
@@ -32,109 +74,38 @@
 
   :dependencies
   [[cljsjs/bytebuffer "5.0.1-0"]
-   [cljsjs/nodejs-externs "1.0.4-1"]
    [cljsjs/pako "0.2.7-0"]
    [com.google.guava/guava "23.0" :exclusions [com.google.code.findbugs/jsr305]]
-   [org.clojure/clojure "1.8.0"]
-   [org.clojure/clojurescript "1.9.908"]
-   [prismatic/schema "1.1.6"]]
+   [org.clojure/clojure "1.9.0-beta4"]
+   [org.clojure/clojurescript "1.9.946"]
+   [prismatic/schema "1.1.7"]]
 
   :cljsbuild
   {:builds
-   [{:id "node-test-none"
-     :source-paths ["src" "test"]
-     :notify-command ["node" "target/test/node_test_none/test_main.js"]
-     :compiler
-     {:optimizations :none
-      :parallel-build true
-      :main "deercreeklabs.node-test-runner"
-      :target :nodejs
-      :output-to "target/test/node_test_none/test_main.js"
-      :output-dir "target/test/node_test_none"
-      :source-map true}}
-    {:id "node-test-adv"
-     :source-paths ["src" "test"]
-     :notify-command ["node" "target/test/node_test_adv/test_main.js"]
-     :compiler
-     {:optimizations :advanced
-      ;; :pseudo-names true
-      ;; :pretty-print true
-      ;; :infer-externs true
-      :externs ["externs.js"]
-      :parallel-build true
-      :main "deercreeklabs.node-test-runner"
-      :target :nodejs
-      :static-fns true
-      :output-to  "target/test/node_test_adv/test_main.js"
-      :output-dir "target/test/node_test_adv"
-      :source-map "target/test/node_test_adv/map.js.map"}}
-    {:id "node-test-simple"
-     :source-paths ["src" "test"]
-     :notify-command ["node" "target/test/node_test_simple/test_main.js"]
-     :compiler
-     {:optimizations :simple
-      :parallel-build true
-      :main "deercreeklabs.node-test-runner"
-      :target :nodejs
-      :static-fns true
-      :output-to  "target/test/node_test_simple/test_main.js"
-      :output-dir "target/test/node_test_simple"
-      :source-map "target/test/node_test_simple/map.js.map"}}
-    {:id "doo-test-none"
-     :source-paths ["src" "test"]
-     :compiler
-     {:optimizations :none
-      :parallel-build true
-      :main "deercreeklabs.doo-test-runner"
-      :output-to "target/test/doo_test_none/test_main.js"
-      :output-dir "target/test/doo_test_none"
-      :source-map true}}
-    {:id "doo-test-simple"
-     :source-paths ["src" "test"]
-     :compiler
-     {:optimizations :simple
-      :parallel-build true
-      :main "deercreeklabs.doo-test-runner"
-      :output-to "target/test/doo_test_simple/test_main.js"
-      :output-dir "target/test/doo_test_simple"
-      :source-map "target/test/doo_test_simple/map.js.map"}}
-    {:id "doo-test-adv"
-     :source-paths ["src" "test"]
-     :compiler
-     {:optimizations :advanced
-      ;; :pseudo-names true
-      ;; :pretty-print true
-      ;; :infer-externs true
-      :externs ["externs.js"]
-      :parallel-build true
-      :main "deercreeklabs.doo-test-runner"
-      :static-fns true
-      :output-to  "target/test/doo_test_adv/test_main.js"
-      :output-dir "target/test/doo_test_adv"
-      :source-map "target/test/doo_test_adv/map.js.map"}}
-    {:id "build-simple"
-     :source-paths ["src"]
-     :compiler
-     {:optimizations :simple
-      :parallel-build true
-      :static-fns true
-      :output-to  "target/build_simple/tube.js"
-      :output-dir "target/build_simple"
-      :source-map "target/build_simple/map.js.map"}}]}
+   [~(make-build-conf "node-test-none" :node :test :none
+                      "deercreeklabs.node-test-runner")
+    ~(make-build-conf "node-test-simple" :node :test :simple
+                      "deercreeklabs.node-test-runner")
+    ~(make-build-conf "node-test-adv" :node :test :advanced
+                      "deercreeklabs.node-test-runner")
+    ~(make-build-conf "doo-test-none" :doo :test :none
+                      "deercreeklabs.doo-test-runner")
+    ~(make-build-conf "doo-test-simple" :doo :test :simple
+                      "deercreeklabs.doo-test-runner")
+    ~(make-build-conf "doo-test-adv" :doo :test :advanced
+                      "deercreeklabs.doo-test-runner")
+    ~(make-build-conf "build-adv" nil :build :advanced nil)]}
 
   :aliases
   {"auto-test-cljs" ["do"
                      "clean,"
                      "cljsbuild" "auto" "node-test-none"]
-   "auto-test-cljs-adv" ["do"
-                         "clean,"
-                         "cljsbuild" "auto" "node-test-adv"]
    "auto-test-cljs-simple" ["do"
                             "clean,"
                             "cljsbuild" "auto" "node-test-simple"]
-   "build-simple" ["do"
-                   "clean,"
-                   "cljsbuild" "once" "build-simple"]
+   "auto-test-cljs-adv" ["do"
+                         "clean,"
+                         "cljsbuild" "auto" "node-test-adv"]
    "chrome-test" ["do"
                   "clean,"
                   "doo" "chrome" "doo-test-adv"]})

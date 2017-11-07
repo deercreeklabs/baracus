@@ -11,6 +11,9 @@
       (java.util Arrays Base64)
       (java.util.zip DeflaterOutputStream InflaterOutputStream))))
 
+#?(:cljs
+   (set! *warn-on-infer* true))
+
 ;;;;;;;;;;;;;;;;;;;; Schemas ;;;;;;;;;;;;;;;;;;;;
 
 (def Nil (s/eq nil))
