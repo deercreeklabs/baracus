@@ -1,12 +1,10 @@
-(def externs ["baracus_externs.js"])
-
 (def compiler-defaults
   {:parallel-build true
    :static-fns true
    ;; :pseudo-names true
    ;; :pretty-print true
    ;; :infer-externs true
-   })
+   :externs ["baracus_externs.js"]})
 
 (defn make-build-conf [id target-kw build-type-kw opt-level main]
   (let [build-type-str (name build-type-kw)
@@ -32,7 +30,6 @@
                                :output-dir output-dir
                                :source-map source-map)
                    main (assoc :main main)
-                   (= :advanced opt-level) (assoc :externs externs)
                    node? (assoc :target :nodejs))
         node-test? (and node? (= :test build-type-kw))]
     (cond-> {:id id
