@@ -52,7 +52,7 @@
   {:dev
    {:global-vars {*warn-on-reflection* true}
     :plugins
-    [[lein-ancient "0.6.14"]
+    [[lein-ancient "0.6.15"]
      [lein-cljsbuild "1.1.7" :exclusions [org.clojure/clojure]]
      [lein-cloverage "1.0.10" :exclusions [org.clojure/clojure]]
      [lein-doo "0.1.8"]
@@ -73,7 +73,7 @@
   [[cljsjs/bytebuffer "5.0.1-0"]
    [cljsjs/pako "0.2.7-0"]
    [com.google.guava/guava "23.0" :exclusions [com.google.code.findbugs/jsr305]]
-   [org.clojure/clojure "1.9.0-beta4"]
+   [org.clojure/clojure "1.9.0"]
    [org.clojure/clojurescript "1.9.946"]
    [prismatic/schema "1.1.7"]]
 
