@@ -37,7 +37,7 @@
              :compiler compiler}
       node-test? (assoc :notify-command ["node" output-to]))))
 
-(defproject deercreeklabs/baracus "0.1.2-SNAPSHOT"
+(defproject deercreeklabs/baracus "0.1.2"
   :description
   "Utilities for working with byte arrays in Clojure & Clojurescript"
   :url "https://github.com/deercreeklabs/baracus"
