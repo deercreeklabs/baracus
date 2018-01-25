@@ -1,8 +1,9 @@
 (ns deercreeklabs.baracus
   (:refer-clojure :exclude [byte-array])
   (:require
-   #?(:cljs [cljsjs.bytebuffer])
    #?(:cljs [cljsjs.pako])
+   #?(:cljs [goog.crypt :as gc])
+   #?(:cljs [goog.crypt.base64 :as b64])
    [schema.core :as s])
   #?(:clj
      (:import
@@ -38,6 +39,8 @@
   (when-not (nil? x)
     (boolean (= ByteArray (class x)))))
 
+;; TODO: Simplify. Use .set method instead. See
+;; https://stackoverflow.com/questions/14071463/how-can-i-merge-typedarrays-in-javascript
 (s/defn concat-byte-arrays :- (s/maybe ByteArray)
   [arrays :- (s/maybe [(s/maybe ByteArray)])]
   (when arrays
@@ -262,16 +265,14 @@
   #?(:clj
      (.encodeToString (Base64/getEncoder) b)
      :cljs
-     (let [buf (.wrap js/ByteBuffer (.-buffer b))]
-       (.toBase64 buf))))
+     (b64/encodeByteArray (js/Uint8Array. b))))
 
 (s/defn b64->byte-array :- ByteArray
   [s :- s/Str]
   #?(:clj
      (.decode (Base64/getDecoder) ^String s)
      :cljs
-     (-> (.fromBase64 js/ByteBuffer s)
-         (.toArrayBuffer)
+     (-> (b64/decodeStringToUint8Array s)
          (js/Int8Array.))))
 
 (s/defn byte-array->utf8 :- s/Str
@@ -279,18 +280,14 @@
   #?(:clj
      (String. #^bytes ba "UTF-8")
      :cljs
-     (let [num-bytes (count ba)
-           buf (.wrap js/ByteBuffer (.-buffer ba))]
-       (.readUTF8String buf num-bytes (.-METRICS_BYTES js/ByteBuffer)))))
+     (gc/utf8ByteArrayToString (js/Uint8Array. ba))))
 
 (s/defn utf8->byte-array :- ByteArray
   [s :- s/Str]
   #?(:clj
      (.getBytes ^String s "UTF-8")
      :cljs
-     (let [bb (.fromUTF8 js/ByteBuffer s)]
-       (-> (.toArrayBuffer bb)
-           (js/Int8Array.)))))
+     (js/Int8Array. (gc/stringToUtf8ByteArray s))))
 
 #?(:cljs
    (defn signed-byte-array->unsigned-byte-array [b]

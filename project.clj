@@ -70,8 +70,7 @@
                           [source-map-support "0.4.17"]]}
 
   :dependencies
-  [[cljsjs/bytebuffer "5.0.1-0"]
-   [cljsjs/pako "0.2.7-0"]
+  [[cljsjs/pako "0.2.7-0"]
    [com.google.guava/guava "23.0" :exclusions [com.google.code.findbugs/jsr305]]
    [org.clojure/clojure "1.9.0"]
    [org.clojure/clojurescript "1.9.946"]
