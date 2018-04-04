@@ -1,7 +1,7 @@
 (ns deercreeklabs.baracus
   (:refer-clojure :exclude [byte-array])
   (:require
-   #?(:cljs [cljsjs.pako])
+   #?(:cljs [pako])
    #?(:cljs [goog.crypt :as gc])
    #?(:cljs [goog.crypt.base64 :as b64])
    [schema.core :as s])
@@ -173,7 +173,7 @@
      #?(:clj
         (Arrays/copyOfRange ^bytes array ^int start ^int stop)
         :cljs
-        (.slice array start stop)))))
+        (.slice ^js/Int8Array array start stop)))))
 
 (s/defn reverse-byte-array :- ByteArray
   "Returns a new byte array with bytes reversed."
@@ -301,10 +301,6 @@
 
 ;;;;;;;;;;;;;;;;;;;; Compression / Decompression ;;;;;;;;;;;;;;;;;;;;
 
-#?(:cljs
-   (def pako (or (this-as this (.-pako this))
-                 js/module.exports)))
-
 (s/defn deflate :- (s/maybe ByteArray)
   [data :- (s/maybe ByteArray)]
   (when data
@@ -317,7 +313,7 @@
        :cljs
        (->> data
             (signed-byte-array->unsigned-byte-array)
-            (.deflate pako)
+            (pako/deflate)
             (unsigned-byte-array->signed-byte-array)))))
 
 (s/defn inflate :- (s/maybe ByteArray)
@@ -332,5 +328,5 @@
        :cljs
        (->> deflated-data
             (signed-byte-array->unsigned-byte-array)
-            (.inflate pako)
+            (pako/inflate)
             (unsigned-byte-array->signed-byte-array)))))
