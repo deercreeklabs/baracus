@@ -146,21 +146,22 @@
             (str "[" (clojure.string/join ", " s) "]"))
      :cljs (str ba)))
 
-(s/defn slice-byte-array :- ByteArray
+(s/defn slice-byte-array :- (s/maybe ByteArray)
   "Return a slice of the given byte array.
    Args:
-        - array - Array to be sliced. Required.
+        - ba - Byte array to be sliced. Required.
         - start - Start index. Optional. Defaults to 0.
         - end - End index. Optional. If not provided, the slice will extend
              to the end of the array. The returned slice will not contain
              the byte at the end index position, i.e.: the slice fn uses
              a half-open interval."
-  ([array :- ByteArray]
-   (slice-byte-array array 0 (count array)))
-  ([array :- ByteArray
+  ([ba :- (s/maybe ByteArray)]
+   (when ba
+     (slice-byte-array ba 0 (count ba))))
+  ([ba :- (s/maybe ByteArray)
     start :- s/Num]
-   (slice-byte-array array start (count array)))
-  ([array :- ByteArray
+   (slice-byte-array ba start (count ba)))
+  ([ba :- (s/maybe ByteArray)
     start :- s/Num
     end :- s/Num]
    (when (> start end)
@@ -169,21 +170,22 @@
                       :subtype :slice-start-is-greater-than-end
                       :start start
                       :end end})))
-   (let [stop (min end (count array))]
+   (let [stop (min end (count ba))]
      #?(:clj
-        (Arrays/copyOfRange ^bytes array ^int start ^int stop)
+        (Arrays/copyOfRange ^bytes ba ^int start ^int stop)
         :cljs
-        (.slice ^js/Int8Array array start stop)))))
+        (.slice ^js/Int8Array ba start stop)))))
 
-(s/defn reverse-byte-array :- ByteArray
+(s/defn reverse-byte-array :- (s/maybe ByteArray)
   "Returns a new byte array with bytes reversed."
-  [ba :- ByteArray]
-  (let [num (count ba)
-        last (dec num)
-        new (byte-array num)]
-    (dotimes [i num]
-      (aset ^bytes new i ^byte (aget ^bytes ba (- last i))))
-    new))
+  [ba :- (s/maybe ByteArray)]
+  (when ba
+    (let [num (count ba)
+          last (dec num)
+          new (byte-array num)]
+      (dotimes [i num]
+        (aset ^bytes new i ^byte (aget ^bytes ba (- last i))))
+      new)))
 
 #?(:clj
    (s/defn read-byte-array-from-file :- ByteArray
@@ -204,19 +206,20 @@
        (.write out ^bytes ba))
      nil))
 
-(s/defn byte-array->fragments :- [ByteArray]
-  [ba :- ByteArray
+(s/defn byte-array->fragments :- (s/maybe [ByteArray])
+  [ba :- (s/maybe ByteArray)
    fragment-size :- s/Int]
-  (if (zero? fragment-size)
-    (slice-byte-array ba)
-    (loop [offset 0
-           output []]
-      (if (>= offset (count ba))
-        output
-        (let [end-offset (+ offset fragment-size)
-              fragment (slice-byte-array ba offset end-offset)]
-          (recur (int end-offset)
-                 (conj output fragment)))))))
+  (when ba
+    (if (zero? fragment-size)
+      (slice-byte-array ba)
+      (loop [offset 0
+             output []]
+        (if (>= offset (count ba))
+          output
+          (let [end-offset (+ offset fragment-size)
+                fragment (slice-byte-array ba offset end-offset)]
+            (recur (int end-offset)
+                   (conj output fragment))))))))
 
 (s/defn decode-int :- [(s/one s/Int :int)
                        (s/optional ByteArray :unread-remainder)]
@@ -262,42 +265,48 @@
           (recur (unsigned-bit-shift-right n 7)
                  (conj out b)))))))
 
-(s/defn byte-array->b64 :- s/Str
-  [b :- ByteArray]
-  #?(:clj
-     (.encodeToString (Base64/getEncoder) b)
-     :cljs
-     (b64/encodeByteArray (js/Uint8Array. b))))
+(s/defn byte-array->b64 :- (s/maybe s/Str)
+  [b :- (s/maybe ByteArray)]
+  (when b
+    #?(:clj
+       (.encodeToString (Base64/getEncoder) b)
+       :cljs
+       (b64/encodeByteArray (js/Uint8Array. b)))))
 
-(s/defn b64->byte-array :- ByteArray
-  [s :- s/Str]
-  #?(:clj
-     (.decode (Base64/getDecoder) ^String s)
-     :cljs
-     (-> (b64/decodeStringToUint8Array s)
-         (js/Int8Array.))))
+(s/defn b64->byte-array :- (s/maybe ByteArray)
+  [s :- (s/maybe s/Str)]
+  (when s
+    #?(:clj
+       (.decode (Base64/getDecoder) ^String s)
+       :cljs
+       (-> (b64/decodeStringToUint8Array s)
+           (js/Int8Array.)))))
 
-(s/defn byte-array->utf8 :- s/Str
-  [ba :- ByteArray]
-  #?(:clj
-     (String. #^bytes ba "UTF-8")
-     :cljs
-     (gc/utf8ByteArrayToString (js/Uint8Array. ba))))
+(s/defn byte-array->utf8 :- (s/maybe s/Str)
+  [ba :- (s/maybe ByteArray)]
+  (when ba
+    #?(:clj
+       (String. #^bytes ba "UTF-8")
+       :cljs
+       (gc/utf8ByteArrayToString (js/Uint8Array. ba)))))
 
-(s/defn utf8->byte-array :- ByteArray
-  [s :- s/Str]
-  #?(:clj
-     (.getBytes ^String s "UTF-8")
-     :cljs
-     (js/Int8Array. (gc/stringToUtf8ByteArray s))))
+(s/defn utf8->byte-array :- (s/maybe ByteArray)
+  [s :- (s/maybe s/Str)]
+  (when s
+    #?(:clj
+       (.getBytes ^String s "UTF-8")
+       :cljs
+       (js/Int8Array. (gc/stringToUtf8ByteArray s)))))
 
 #?(:cljs
-   (defn signed-byte-array->unsigned-byte-array [b]
-     (js/Uint8Array. b)))
+   (defn signed-byte-array->unsigned-byte-array [ba]
+     (when ba
+       (js/Uint8Array. ba))))
 
 #?(:cljs
-   (defn unsigned-byte-array->signed-byte-array [b]
-     (js/Int8Array. b)))
+   (defn unsigned-byte-array->signed-byte-array [ba]
+     (when ba
+       (js/Int8Array. ba))))
 
 ;;;;;;;;;;;;;;;;;;;; Compression / Decompression ;;;;;;;;;;;;;;;;;;;;
 
