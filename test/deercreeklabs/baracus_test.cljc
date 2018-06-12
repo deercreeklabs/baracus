@@ -82,7 +82,7 @@
         rt-data (ba/inflate deflated)]
     (is (ba/equivalent-byte-arrays? data rt-data))))
 
-(deftest test-deflate-inflate-mu
+(deftest test-deflate-inflate-data
   (let [data (ba/byte-array
               [36 116 101 115 116 101 109 97 105 108 64 116 101 115 116 46
                99 111 109 24 116 101 115 116 112 97 115 115 119 111 114 100])
@@ -92,3 +92,10 @@
                  deflated-b64))
         rt-data (ba/inflate deflated)]
     (is (ba/equivalent-byte-arrays? data rt-data))))
+
+(deftest test-constructor-w-generic-arrays
+  (let [data [1 3 5]
+        ret (ba/byte-array #?(:clj (byte-array data)
+                              :cljs (js/Array.from data)))]
+    (is (ba/byte-array? ret))
+    (is (ba/equivalent-byte-arrays? ret (ba/byte-array data)))))

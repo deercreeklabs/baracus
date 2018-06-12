@@ -71,13 +71,32 @@
 #?(:cljs
    (s/defn byte-array-cljs :- ByteArray
      ([size-or-seq :- SizeOrSeq]
-      (if (sequential? size-or-seq)
+      (cond
+        (sequential? size-or-seq)
         (byte-array-cljs (count size-or-seq) size-or-seq)
-        (byte-array-cljs size-or-seq 0)))
+
+        (instance? js/Array size-or-seq)
+        (byte-array-cljs (.-length ^js/Array size-or-seq) size-or-seq)
+
+        (int? size-or-seq)
+        (byte-array-cljs size-or-seq 0)
+
+        :else
+        (throw
+         (ex-info (str "Argument to byte-array must be a sequence, "
+                       "array, or an integer representing the size of "
+                       "the array.")
+                  {:arg size-or-seq}))))
      ([size init-val-or-seq]
       (let [ba (js/Int8Array. size)]
-        (if (sequential? init-val-or-seq)
+        (cond
+          (sequential? init-val-or-seq)
           (.set ba (clj->js init-val-or-seq))
+
+          (instance? js/Array init-val-or-seq)
+          (.set ba init-val-or-seq)
+
+          :else
           (.fill ba init-val-or-seq))
         ba))))
 
