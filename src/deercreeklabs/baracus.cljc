@@ -317,6 +317,38 @@
        :cljs
        (js/Int8Array. (gc/stringToUtf8ByteArray s)))))
 
+(s/defn byte-array->hex-str :- (s/maybe s/Str)
+  [ba :- (s/maybe ByteArray)]
+  (when ba
+    (let [len (count ba)
+          hex-chars [\0 \1 \2 \3 \4 \5 \6 \7 \8 \9 \a \b \c \d \e \f]
+          ca (#?(:clj char-array :cljs js/Array.) (* 2 len))]
+      (dotimes [i len]
+        (let [b (bit-and (aget ^bytes ba i) 0xff)
+              j (* 2 i)]
+          (#?(:clj aset-char :cljs aset) ca j (hex-chars (bit-shift-right b 4)))
+          (#?(:clj aset-char :cljs aset) ca (inc j) (hex-chars
+                                                     (bit-and b 0x0f)))))
+      #?(:clj (String. ca)
+         :cljs (.join ^js/Array ca "")))))
+
+(defn char->int [ch]
+  #?(:clj (Character/digit ^Character ch 16)
+     :cljs (js/parseInt ch 16)))
+
+(s/defn hex-str->byte-array :- (s/maybe ByteArray)
+  [s :- (s/maybe s/Str)]
+  (when s
+    (let [ba-len (/ (count s) 2)
+          ba (byte-array ba-len)]
+      (dotimes [i ba-len]
+        (let [j (* 2 i)]
+          (aset ^bytes ba i
+                (unchecked-byte
+                 (+ (bit-shift-left (char->int (get s j)) 4)
+                    (char->int (get s (inc j))))))))
+      ba)))
+
 #?(:cljs
    (defn signed-byte-array->unsigned-byte-array [ba]
      (when ba

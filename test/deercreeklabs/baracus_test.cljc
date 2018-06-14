@@ -3,6 +3,10 @@
    [clojure.test :refer [deftest is]]
    [deercreeklabs.baracus :as ba]))
 
+(defn get-current-time-ms []
+  #?(:clj (System/currentTimeMillis)
+     :cljs (.getTime (js/Date.))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Unit tests
 
 (deftest test-byte-array
@@ -99,3 +103,31 @@
                               :cljs (js/Array.from data)))]
     (is (ba/byte-array? ret))
     (is (ba/equivalent-byte-arrays? ret (ba/byte-array data)))))
+
+(deftest test-byte-array->hex-str
+  (let [data (ba/byte-array (range 100))
+        expected (str "000102030405060708090a0b0c0d0e0f101112131415161718191a1b"
+                      "1c1d1e1f202122232425262728292a2b2c2d2e2f3031323334353637"
+                      "38393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f50515253"
+                      "5455565758595a5b5c5d5e5f60616263")
+        iters 1e4
+        start-ms (get-current-time-ms)
+        _ (dotimes [_ iters]
+            (ba/byte-array->hex-str data))
+        ms (- (get-current-time-ms) start-ms)]
+    (is (= expected (ba/byte-array->hex-str data)))
+    (is (< ms #?(:clj 250 :cljs 350)))))
+
+(deftest test-hex-str->byte-array
+  (let [hex-str (str "000102030405060708090a0b0c0d0e0f101112131415161718191a1b"
+                     "1c1d1e1f202122232425262728292a2b2c2d2e2f3031323334353637"
+                     "38393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f50515253"
+                     "5455565758595a5b5c5d5e5f60616263")
+        expected (ba/byte-array (range 100))
+        iters 1e4
+        start-ms (get-current-time-ms)
+        _ (dotimes [_ iters]
+            (ba/hex-str->byte-array hex-str))
+        ms (- (get-current-time-ms) start-ms)]
+    (is (ba/equivalent-byte-arrays? expected (ba/hex-str->byte-array hex-str)))
+    (is (< ms #?(:clj 500 :cljs 650)))))
