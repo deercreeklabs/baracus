@@ -39,35 +39,6 @@
   (when-not (nil? x)
     (boolean (= ByteArray (class x)))))
 
-;; TODO: Simplify. Use .set method instead. See
-;; https://stackoverflow.com/questions/14071463/how-can-i-merge-typedarrays-in-javascript
-(s/defn concat-byte-arrays :- (s/maybe ByteArray)
-  [arrays :- (s/maybe [(s/maybe ByteArray)])]
-  (when arrays
-    (let [arrays (keep identity arrays)]
-      (case (count arrays)
-        0 nil
-        1 (first arrays)
-        #?(:clj (Bytes/concat (into-array arrays))
-           :cljs
-           (let [lengths (map count arrays)
-                 new-array (js/Int8Array. (apply + lengths))
-                 offsets (loop [lens lengths
-                                pos 0
-                                positions [0]]
-                           (if (= 1 (count lens))
-                             positions
-                             (let [[len & rest] lens
-                                   new-pos (+ pos len)]
-                               (recur rest
-                                      new-pos
-                                      (conj positions new-pos)))))]
-             (dotimes [i (count arrays)]
-               (let [v (nth arrays i)
-                     offset (nth offsets i)]
-                 (.set new-array v offset)))
-             new-array))))))
-
 #?(:cljs
    (s/defn byte-array-cljs :- ByteArray
      ([size-or-seq :- SizeOrSeq]
@@ -110,6 +81,25 @@
                          s/Any)]
    (#?(:clj clojure.core/byte-array
        :cljs byte-array-cljs) size init-val-or-seq)))
+
+(s/defn concat-byte-arrays :- (s/maybe ByteArray)
+  [arrays :- (s/maybe [(s/maybe ByteArray)])]
+  (when arrays
+    (let [arrays (keep identity arrays)]
+      (case (count arrays)
+        0 nil
+        1 (first arrays)
+        #?(:clj (Bytes/concat (into-array arrays))
+           :cljs
+           (let [len (reduce (fn [acc ba]
+                               (+ acc (count ba)))
+                             0 arrays)
+                 ^js/Int8Array new-ba (byte-array len)]
+             (reduce (fn [pos ba]
+                       (.set new-ba ba pos)
+                       (+ pos (count ba)))
+                     0 arrays)
+             new-ba))))))
 
 (s/defn equivalent-byte-arrays? :- s/Bool
   [a :- ByteArray
