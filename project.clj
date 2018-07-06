@@ -56,7 +56,7 @@
     :plugins
     [[lein-ancient "0.6.15"]
      [lein-cljsbuild "1.1.7" :exclusions [org.clojure/clojure]]
-     [lein-cloverage "1.0.10" :exclusions [org.clojure/clojure]]
+     [lein-cloverage "1.0.11" :exclusions [org.clojure/clojure]]
      [lein-doo "0.1.10"
       :exclusions [org.clojure/clojure org.clojure/clojurescript]]
      [lein-npm "0.6.2" :exclusions [com.fasterxml.jackson.core/jackson-core]]
@@ -75,7 +75,7 @@
   :dependencies
   [[com.google.guava/guava "23.0" :exclusions [com.google.code.findbugs/jsr305]]
    [org.clojure/clojure "1.9.0"]
-   [org.clojure/clojurescript "1.10.312"]
+   [org.clojure/clojurescript "1.10.339"]
    [prismatic/schema "1.1.9"]]
 
   :cljsbuild
