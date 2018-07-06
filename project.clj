@@ -39,7 +39,7 @@
              :compiler compiler}
       node-test? (assoc :notify-command ["node" output-to]))))
 
-(defproject deercreeklabs/baracus "0.1.9"
+(defproject deercreeklabs/baracus "0.1.10"
   :description
   "Utilities for working with byte arrays in Clojure & Clojurescript"
   :url "https://github.com/deercreeklabs/baracus"
@@ -56,7 +56,7 @@
     :plugins
     [[lein-ancient "0.6.15"]
      [lein-cljsbuild "1.1.7" :exclusions [org.clojure/clojure]]
-     [lein-cloverage "1.0.11" :exclusions [org.clojure/clojure]]
+     [lein-cloverage "1.0.11" :exclusions [fipp org.clojure/clojure]]
      [lein-doo "0.1.10"
       :exclusions [org.clojure/clojure org.clojure/clojurescript]]
      [lein-npm "0.6.2" :exclusions [com.fasterxml.jackson.core/jackson-core]]
