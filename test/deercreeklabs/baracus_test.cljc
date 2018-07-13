@@ -1,7 +1,10 @@
 (ns deercreeklabs.baracus-test
   (:require
-   [clojure.test :refer [deftest is]]
-   [deercreeklabs.baracus :as ba]))
+   [clojure.test :refer [deftest is use-fixtures]]
+   [deercreeklabs.baracus :as ba]
+   [schema.test :as st]))
+
+(use-fixtures :once st/validate-schemas)
 
 (defn get-current-time-ms []
   #?(:clj (System/currentTimeMillis)
@@ -61,9 +64,7 @@
        (is (= 255 (aget u 0)))
        (is (= 255 (aget u1 0)))
        (is (ba/equivalent-byte-arrays?
-            s (ba/unsigned-byte-array->signed-byte-array u)))
-       (is (ba/equivalent-byte-arrays?
-            u (ba/signed-byte-array->unsigned-byte-array s))))))
+            s (ba/unsigned-byte-array->signed-byte-array u))))))
 
 (deftest test-deflate-inflate
   (let [data (ba/byte-array
@@ -131,3 +132,11 @@
         ms (- (get-current-time-ms) start-ms)]
     (is (ba/equivalent-byte-arrays? expected (ba/hex-str->byte-array hex-str)))
     (is (< ms #?(:clj 500 :cljs 650)))))
+
+(deftest test-sha256
+  (let [ba (ba/utf8->byte-array "Hello World...")
+        hash-hex (str "b49b84d7a9d40a621b26cdc2c5f7be74"
+                      "c022b3a1e51146e28072aa97db59cd00")
+        expected-ba (ba/hex-str->byte-array hash-hex)
+        ret (ba/sha256 ba)]
+    (is (ba/equivalent-byte-arrays? expected-ba ret))))

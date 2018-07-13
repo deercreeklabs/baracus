@@ -6,7 +6,8 @@
    ;; :infer-externs true
    :externs ["baracus_externs.js"]
    :install-deps true
-   :npm-deps {:pako "1.0.6"}})
+   :npm-deps {:pako "1.0.6"
+              :source-map-support "0.5.6"}})
 
 (defn make-build-conf [id target-kw build-type-kw opt-level main]
   (let [build-type-str (name build-type-kw)
@@ -59,18 +60,11 @@
      [lein-cloverage "1.0.11" :exclusions [fipp org.clojure/clojure]]
      [lein-doo "0.1.10"
       :exclusions [org.clojure/clojure org.clojure/clojurescript]]
-     [lein-npm "0.6.2" :exclusions [com.fasterxml.jackson.core/jackson-core]]
      ;; Because of confusion with a defunct project also called
      ;; lein-release, we exclude lein-release from lein-ancient.
      [lein-release "1.0.9" :upgrade false :exclusions [org.clojure/clojure]]]
     :dependencies
     [[doo "0.1.10"]]}}
-
-  :npm {:devDependencies [[karma "1.7.1"]
-                          [karma-chrome-launcher "2.2.0"]
-                          [karma-cljs-test "0.1.0"]
-                          [karma-firefox-launcher "1.0.1"]
-                          [source-map-support "0.4.17"]]}
 
   :dependencies
   [[com.google.guava/guava "23.0" :exclusions [com.google.code.findbugs/jsr305]]

@@ -4,11 +4,13 @@
    #?(:cljs [pako])
    #?(:cljs [goog.crypt :as gc])
    #?(:cljs [goog.crypt.base64 :as b64])
+   #?(:cljs [goog.crypt.Sha256 :as Sha256])
    [schema.core :as s])
   #?(:clj
      (:import
       (com.google.common.primitives Bytes)
       (java.io ByteArrayInputStream ByteArrayOutputStream)
+      (java.security MessageDigest)
       (java.util Arrays Base64)
       (java.util.zip DeflaterOutputStream InflaterOutputStream))))
 
@@ -25,11 +27,6 @@
      :cljs
      js/Int8Array))
 
-(def SizeOrSeq
-  (s/if integer?
-    s/Num
-    [s/Any]))
-
 ;;;;;;;;;;;;;;;;;;;; byte-arrays ;;;;;;;;;;;;;;;;;;;;
 
 #?(:cljs (def class type))
@@ -40,8 +37,8 @@
     (boolean (= ByteArray (class x)))))
 
 #?(:cljs
-   (s/defn byte-array-cljs :- ByteArray
-     ([size-or-seq :- SizeOrSeq]
+   (defn byte-array-cljs
+     ([size-or-seq]
       (cond
         (sequential? size-or-seq)
         (byte-array-cljs (count size-or-seq) size-or-seq)
@@ -72,10 +69,10 @@
         ba))))
 
 (s/defn byte-array :- ByteArray
-  ([size-or-seq :- SizeOrSeq]
+  ([size-or-seq :- s/Any]
    (#?(:clj clojure.core/byte-array
        :cljs byte-array-cljs) size-or-seq))
-  ([size :- SizeOrSeq
+  ([size :- s/Int
     init-val-or-seq :- (s/if sequential?
                          [s/Any]
                          s/Any)]
@@ -380,3 +377,15 @@
             (signed-byte-array->unsigned-byte-array)
             (pako/inflate)
             (unsigned-byte-array->signed-byte-array)))))
+
+;;;;;;;;;;;;;;;;;;;; Hashing ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(s/defn sha256 :- ByteArray
+  [ba :- ByteArray]
+  #?(:clj
+     (let [^MessageDigest md (MessageDigest/getInstance "SHA-256")]
+       (.digest md ba))
+     :cljs
+     (let [hasher (goog.crypt.Sha256.)]
+       (.update hasher ba)
+       (byte-array (.digest hasher)))))
