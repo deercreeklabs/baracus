@@ -28,9 +28,50 @@ was a character on the 1980s TV series
 
 # Examples
 
+
 # Data Types
+In Clojure, Baracus uses Java's primitive byte array. In ClojureScript,
+Baracus uses the `js/Int8Array` data type. Note that bytes are signed
+in both cases, following Java's implementation.
 
 # API Documentation
+All public vars and functions are in the `deercreeklabs.baracus` namespace.
+Any other namespaces should be considered private implementation details
+that may change.
+
+-------------------------------------------------------------------------------
+### byte-array?
+```clojure
+(byte-array? arg)
+```
+Creates default data that conforms to the given Lancaster schema. The following
+values are used for the primitive data types:
+* `null`: `nil`
+* `boolean`: `false`
+* `int`: `-1`
+* `long`: `-1`
+* `float`: `-1.0`
+* `double`: `-1.0`
+* `string`: `""`
+* `enum`: first symbol in the schema's symbols list
+
+Default data for complex schemas are built up from the primitives.
+
+#### Parameters
+* `schema`: The Lancaster schema
+
+#### Return Value
+Data that matches the given schema
+
+#### Example
+```clojure
+(l/def-enum-schema suite-schema
+  :clubs :diamonds :hearts :spades)
+
+(l/default-data suite-schema)
+;; :clubs
+```
+-------------------------------------------------------------------------------
 
 ## License
 

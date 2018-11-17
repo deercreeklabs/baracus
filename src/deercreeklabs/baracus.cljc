@@ -1,7 +1,7 @@
 (ns deercreeklabs.baracus
   (:refer-clojure :exclude [byte-array])
   (:require
-   #?(:cljs [pako])
+   [deercreeklabs.baracus.impl :as impl]
    #?(:cljs [goog.crypt :as gc])
    #?(:cljs [goog.crypt.base64 :as b64])
    #?(:cljs [goog.crypt.Sha256 :as Sha256])
@@ -17,7 +17,7 @@
 #?(:cljs
    (set! *warn-on-infer* true))
 
-;;;;;;;;;;;;;;;;;;;; Schemas ;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;; Plumatic Schemas ;;;;;;;;;;;;;;;;;;;;
 
 (def Nil (s/eq nil))
 
@@ -29,57 +29,31 @@
 
 ;;;;;;;;;;;;;;;;;;;; byte-arrays ;;;;;;;;;;;;;;;;;;;;
 
-#?(:cljs (def class type))
-
 (s/defn byte-array? :- s/Bool
-  [x :- s/Any]
-  (when-not (nil? x)
-    (boolean (= ByteArray (class x)))))
+  "Test if the argument is a byte array"
+  [arg :- s/Any]
+  (when-not (nil? arg)
+    (boolean (= ByteArray
+                (#?(:clj class :cljs type) arg)))))
 
-#?(:cljs
-   (defn byte-array-cljs
-     ([size-or-seq]
-      (cond
-        (sequential? size-or-seq)
-        (byte-array-cljs (count size-or-seq) size-or-seq)
-
-        (instance? js/Array size-or-seq)
-        (byte-array-cljs (.-length ^js/Array size-or-seq) size-or-seq)
-
-        (int? size-or-seq)
-        (byte-array-cljs size-or-seq 0)
-
-        :else
-        (throw
-         (ex-info (str "Argument to byte-array must be a sequence, "
-                       "array, or an integer representing the size of "
-                       "the array.")
-                  {:arg size-or-seq}))))
-     ([size init-val-or-seq]
-      (let [ba (js/Int8Array. size)]
-        (cond
-          (sequential? init-val-or-seq)
-          (.set ba (clj->js init-val-or-seq))
-
-          (instance? js/Array init-val-or-seq)
-          (.set ba init-val-or-seq)
-
-          :else
-          (.fill ba init-val-or-seq))
-        ba))))
 
 (s/defn byte-array :- ByteArray
+  "Construct a byte array.
+   Args:
+     - size-or-seq: An integer size or sequence of bytes."
   ([size-or-seq :- s/Any]
    (#?(:clj clojure.core/byte-array
-       :cljs byte-array-cljs) size-or-seq))
+       :cljs impl/byte-array-cljs) size-or-seq))
   ([size :- s/Int
     init-val-or-seq :- (s/if sequential?
                          [s/Any]
                          s/Any)]
    (#?(:clj clojure.core/byte-array
-       :cljs byte-array-cljs) size init-val-or-seq)))
+       :cljs impl/byte-array-cljs
+       ) size init-val-or-seq)))
 
 (s/defn concat-byte-arrays :- (s/maybe ByteArray)
+  "Concatenate a sequence of byte arrays"
   [arrays :- (s/maybe [(s/maybe ByteArray)])]
   (when arrays
     (let [arrays (keep identity arrays)]
@@ -99,6 +73,8 @@
              new-ba))))))
 
 (s/defn equivalent-byte-arrays? :- s/Bool
+  "Test if two byte arrays are equivalent. Normal Clojure = on byte arrays
+   checks identity, not equality. Note that this is an O(n) operation."
   [a :- ByteArray
    b :- ByteArray]
   (and
@@ -111,36 +87,6 @@
                 (aget ^bytes b i))
            (recur (int (inc i)))
            false))))))
-
-;; Make cljs byte-arrays countable
-#?(:cljs
-   (extend-protocol ICounted
-     js/Int8Array
-     (-count [this]
-       (if this
-         (.-length this)
-         0))))
-
-#?(:cljs
-   (extend-protocol ICounted
-     js/Uint8Array
-     (-count [this]
-       (if this
-         (.-length this)
-         0))))
-
-;; Make cljs byte-arrays ISeqable
-#?(:cljs
-   (extend-protocol ISeqable
-     js/Int8Array
-     (-seq [o]
-       (array-seq o))))
-
-#?(:cljs
-   (extend-protocol ISeqable
-     js/Uint8Array
-     (-seq [o]
-       (array-seq o))))
 
 (s/defn byte-array->debug-str :- s/Str
   [ba :- ByteArray]
