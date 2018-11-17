@@ -18,7 +18,7 @@ Using Leiningen / Clojars:
 
 # About
 Baracus provides various utilities for working with byte arrays in
-Clojure & Clojurescript.
+Clojure & Clojurescript. This documentation is a work in progress.
 
 ## Project Name
 This project works with `byte-array` data, which is often abbreviated
@@ -44,32 +44,27 @@ that may change.
 ```clojure
 (byte-array? arg)
 ```
-Creates default data that conforms to the given Lancaster schema. The following
-values are used for the primitive data types:
-* `null`: `nil`
-* `boolean`: `false`
-* `int`: `-1`
-* `long`: `-1`
-* `float`: `-1.0`
-* `double`: `-1.0`
-* `string`: `""`
-* `enum`: first symbol in the schema's symbols list
-
-Default data for complex schemas are built up from the primitives.
+Tests if the argument is a byte array. For Clojure, this means a
+Java primitive byte array. For ClojureScript, this means an instance
+of the `js/Int8Array` data type.
 
 #### Parameters
-* `schema`: The Lancaster schema
+* `arg`: The argument to be tested
 
 #### Return Value
-Data that matches the given schema
+`true` if the argument is a byte array, `false` if otherwise
 
 #### Example
 ```clojure
-(l/def-enum-schema suite-schema
-  :clubs :diamonds :hearts :spades)
+(require '[deercreeklabs.baracus :as ba])
 
-(l/default-data suite-schema)
-;; :clubs
+(def my-ba (ba/byte-array 10))
+
+(ba/byte-array? my-ba)
+;; true
+
+(ba/byte-array? "not a byte-array")
+;; false
 ```
 -------------------------------------------------------------------------------
 

@@ -31,7 +31,7 @@
 ;;;;;;;;;;;;;;;;;;;; byte-arrays ;;;;;;;;;;;;;;;;;;;;
 
 (s/defn byte-array? :- s/Bool
-  "Test if the argument is a byte array"
+  "Tests if the argument is a byte array"
   [arg :- s/Any]
   (when-not (nil? arg)
     (boolean (= ByteArray
