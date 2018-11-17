@@ -1,19 +1,7 @@
 (ns deercreeklabs.baracus.impl
   (:refer-clojure :exclude [byte-array])
   (:require
-   #?(:cljs [pako])
-   #?(:cljs [goog.crypt :as gc])
-   #?(:cljs [goog.crypt.base64 :as b64])
-   #?(:cljs [goog.crypt.Sha256 :as Sha256])
-   #?(:cljs [pako])
-   [schema.core :as s])
-  #?(:clj
-     (:import
-      (com.google.common.primitives Bytes)
-      (java.io ByteArrayInputStream ByteArrayOutputStream)
-      (java.security MessageDigest)
-      (java.util Arrays Base64)
-      (java.util.zip DeflaterOutputStream InflaterOutputStream))))
+   [schema.core :as s]))
 
 #?(:cljs
    (defn byte-array-cljs

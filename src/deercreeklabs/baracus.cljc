@@ -5,6 +5,7 @@
    #?(:cljs [goog.crypt :as gc])
    #?(:cljs [goog.crypt.base64 :as b64])
    #?(:cljs [goog.crypt.Sha256 :as Sha256])
+   #?(:cljs [pako])
    [schema.core :as s])
   #?(:clj
      (:import
@@ -332,6 +333,6 @@
      (let [^MessageDigest md (MessageDigest/getInstance "SHA-256")]
        (.digest md ba))
      :cljs
-     (let [hasher (goog.crypt.Sha256.)]
+     (let [^goog.crypt.Sha256 hasher (goog.crypt.Sha256.)]
        (.update hasher ba)
        (byte-array (.digest hasher)))))

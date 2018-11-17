@@ -67,9 +67,9 @@
     [[doo "0.1.10"]]}}
 
   :dependencies
-  [[com.google.guava/guava "23.0" :exclusions [com.google.code.findbugs/jsr305]]
+  [[com.google.guava/guava "27.0-jre"]
    [org.clojure/clojure "1.9.0"]
-   [org.clojure/clojurescript "1.10.339"]
+   [org.clojure/clojurescript "1.10.439"]
    [prismatic/schema "1.1.9"]]
 
   :cljsbuild
