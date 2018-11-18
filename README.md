@@ -52,7 +52,7 @@ of the `js/Int8Array` data type.
 * `arg`: The argument to be tested
 
 #### Return Value
-`true` if the argument is a byte array, `false` if otherwise
+`true` if the argument is a byte array, `false` otherwise
 
 #### Example
 ```clojure
