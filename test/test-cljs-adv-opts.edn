@@ -1,0 +1,12 @@
+{:externs ["baracus_externs"]
+ ;;:infer-externs true
+ :install-deps true
+ :npm-deps {:pako "1.0.8"}
+ :optimizations :advanced
+ :output-dir "target/test_adv"
+ :output-to "target/test_adv/test_main.js"
+ :parallel-build true
+ ;; :pretty-print true
+ ;; :pseudo-names true
+ :source-map "target/test_adv/map.js.map"
+ :static-fns true}

@@ -1,7 +1,7 @@
 (ns deercreeklabs.baracus
   (:refer-clojure :exclude [byte-array])
   (:require
-   [deercreeklabs.baracus.impl :as impl]
+   #?(:cljs [deercreeklabs.baracus.impl :as impl])
    #?(:cljs [goog.crypt :as gc])
    #?(:cljs [goog.crypt.base64 :as b64])
    #?(:cljs [goog.crypt.Sha256 :as Sha256])

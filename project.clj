@@ -69,8 +69,8 @@
   :dependencies
   [[com.google.guava/guava "27.0-jre"]
    [org.clojure/clojure "1.10.0"]
-   [org.clojure/clojurescript "1.10.439"]
-   [prismatic/schema "1.1.9"]]
+   [org.clojure/clojurescript "1.10.516"]
+   [prismatic/schema "1.1.10"]]
 
   :cljsbuild
   {:builds
