@@ -2,13 +2,10 @@
   (:require
    [clojure.test :refer [deftest is use-fixtures]]
    [deercreeklabs.baracus :as ba]
+   #?(:cljs [deercreeklabs.baracus.cljs-utils :as u])
    [schema.test :as st]))
 
 (use-fixtures :once st/validate-schemas)
-
-(defn get-current-time-ms []
-  #?(:clj (System/currentTimeMillis)
-     :cljs (.getTime (js/Date.))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Unit tests
 
@@ -53,50 +50,54 @@
             rt (ba/utf8->byte-array s)]
         (is (= expected s))
         (is (ba/equivalent-byte-arrays? ba rt))))))
+
 #?(:cljs
    (deftest test-signed-array-conversions
      (let [s (ba/byte-array [-1 2 -127])
            u (js/Uint8Array. s)
-           s1 (ba/unsigned-byte-array->signed-byte-array u)
-           u1 (ba/signed-byte-array->unsigned-byte-array s)]
+           s1 (u/unsigned-byte-array->signed-byte-array u)
+           u1 (u/signed-byte-array->unsigned-byte-array s)]
        (is (= -1 (aget s 0)))
        (is (= -1 (aget s1 0)))
        (is (= 255 (aget u 0)))
        (is (= 255 (aget u1 0)))
        (is (ba/equivalent-byte-arrays?
-            s (ba/unsigned-byte-array->signed-byte-array u))))))
+            s (u/unsigned-byte-array->signed-byte-array u))))))
 
-(deftest test-deflate-inflate
-  (let [data (ba/byte-array
-              [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-               2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2])
-        deflated (ba/deflate data)
-        deflated-b64 (ba/byte-array->b64 deflated)
-        _ (is (= "eJxjZMQNmPAAAAgKAFU=" deflated-b64))
-        rt-data (ba/inflate deflated)]
-    (is (ba/equivalent-byte-arrays? data rt-data))))
+#?(:clj
+   (deftest test-deflate-inflate
+     (let [data (ba/byte-array
+                 [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+                  2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2])
+           deflated (ba/deflate data)
+           deflated-b64 (ba/byte-array->b64 deflated)
+           _ (is (= "eJxjZMQNmPAAAAgKAFU=" deflated-b64))
+           rt-data (ba/inflate deflated)]
+       (is (ba/equivalent-byte-arrays? data rt-data)))))
 
-(deftest test-deflate-inflate-signed
-  (let [data (ba/byte-array
-              [-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
-               -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
-               2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2])
-        deflated (ba/deflate data)
-        deflated-b64 (ba/byte-array->b64 deflated)
-        _ (is (= "eJz7/58wYMIDAIc8JBU=" deflated-b64))
-        rt-data (ba/inflate deflated)]
-    (is (ba/equivalent-byte-arrays? data rt-data))))
+#?(:clj
+   (deftest test-deflate-inflate-signed
+     (let [data (ba/byte-array
+                 [-1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+                  -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+                  2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2])
+           deflated (ba/deflate data)
+           deflated-b64 (ba/byte-array->b64 deflated)
+           _ (is (= "eJz7/58wYMIDAIc8JBU=" deflated-b64))
+           rt-data (ba/inflate deflated)]
+       (is (ba/equivalent-byte-arrays? data rt-data)))))
 
-(deftest test-deflate-inflate-data
-  (let [data (ba/byte-array
-              [36 116 101 115 116 101 109 97 105 108 64 116 101 115 116 46
-               99 111 109 24 116 101 115 116 112 97 115 115 119 111 114 100])
-        deflated (ba/deflate data)
-        deflated-b64 (ba/byte-array->b64 deflated)
-        _ (is (= "eJxTKUktLknNTczMcQCx9JLzcyVAjILE4uLy/KIUAMtfDKU="
-                 deflated-b64))
-        rt-data (ba/inflate deflated)]
-    (is (ba/equivalent-byte-arrays? data rt-data))))
+#?(:clj
+   (deftest test-deflate-inflate-data
+     (let [data (ba/byte-array
+                 [36 116 101 115 116 101 109 97 105 108 64 116 101 115 116 46
+                  99 111 109 24 116 101 115 116 112 97 115 115 119 111 114 100])
+           deflated (ba/deflate data)
+           deflated-b64 (ba/byte-array->b64 deflated)
+           _ (is (= "eJxTKUktLknNTczMcQCx9JLzcyVAjILE4uLy/KIUAMtfDKU="
+                    deflated-b64))
+           rt-data (ba/inflate deflated)]
+       (is (ba/equivalent-byte-arrays? data rt-data)))))
 
 (deftest test-constructor-w-generic-arrays
   (let [data [1 3 5]

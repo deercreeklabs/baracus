@@ -3,8 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>deercreeklabs</groupId>
   <artifactId>baracus</artifactId>
-  <packaging>jar</packaging>
-  <version>0.1.15</version>
+  <version>0.2.0</version>
   <name>baracus</name>
   <description>Utilities for working with byte arrays in Clojure &amp; Clojurescript</description>
   <url>https://github.com/deercreeklabs/baracus</url>
@@ -33,11 +32,6 @@
       <version>1.10.0</version>
     </dependency>
     <dependency>
-      <groupId>cljsjs</groupId>
-      <artifactId>pako</artifactId>
-      <version>0.2.7-0</version>
-    </dependency>
-    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>27.0-jre</version>
@@ -53,22 +47,16 @@
       <version>1.1.10</version>
     </dependency>
   </dependencies>
-    <build>
+  <build>
     <sourceDirectory>src</sourceDirectory>
-    <testSourceDirectory>test</testSourceDirectory>
     <resources>
       <resource>
         <directory>resources</directory>
       </resource>
+      <resource>
+        <directory>src</directory>
+      </resource>
     </resources>
-    <testResources>
-      <testResource>
-        <directory>resources</directory>
-      </testResource>
-    </testResources>
-    <directory>target</directory>
-    <outputDirectory>target/classes</outputDirectory>
-    <plugins/>
   </build>
   <repositories>
     <repository>

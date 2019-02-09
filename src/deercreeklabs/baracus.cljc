@@ -1,11 +1,10 @@
 (ns deercreeklabs.baracus
   (:refer-clojure :exclude [byte-array])
   (:require
-   #?(:cljs [deercreeklabs.baracus.impl :as impl])
+   #?(:cljs [deercreeklabs.baracus.cljs-utils :as u])
    #?(:cljs [goog.crypt :as gc])
    #?(:cljs [goog.crypt.base64 :as b64])
    #?(:cljs [goog.crypt.Sha256 :as Sha256])
-   #?(:cljs [pako])
    [schema.core :as s])
   #?(:clj
      (:import
@@ -44,13 +43,13 @@
      - size-or-seq: An integer size or sequence of bytes."
   ([size-or-seq :- s/Any]
    (#?(:clj clojure.core/byte-array
-       :cljs impl/byte-array-cljs) size-or-seq))
+       :cljs u/byte-array-cljs) size-or-seq))
   ([size :- s/Int
     init-val-or-seq :- (s/if sequential?
                          [s/Any]
                          s/Any)]
    (#?(:clj clojure.core/byte-array
-       :cljs impl/byte-array-cljs
+       :cljs u/byte-array-cljs
        ) size init-val-or-seq)))
 
 (s/defn concat-byte-arrays :- (s/maybe ByteArray)
@@ -283,48 +282,6 @@
                     (char->int (get s (inc j))))))))
       ba)))
 
-#?(:cljs
-   (defn signed-byte-array->unsigned-byte-array [ba]
-     (when ba
-       (js/Uint8Array. ba))))
-
-#?(:cljs
-   (defn unsigned-byte-array->signed-byte-array [ba]
-     (when ba
-       (js/Int8Array. ba))))
-
-;;;;;;;;;;;;;;;;;;;; Compression / Decompression ;;;;;;;;;;;;;;;;;;;;
-
-(s/defn deflate :- (s/maybe ByteArray)
-  [data :- (s/maybe ByteArray)]
-  (when data
-    #?(:clj
-       (let [os (ByteArrayOutputStream.)
-             ds (DeflaterOutputStream. os)]
-         (.write ^DeflaterOutputStream ds ^bytes data)
-         (.close ds)
-         (.toByteArray os))
-       :cljs
-       (->> data
-            (signed-byte-array->unsigned-byte-array)
-            (pako/deflate)
-            (unsigned-byte-array->signed-byte-array)))))
-
-(s/defn inflate :- (s/maybe ByteArray)
-  [deflated-data :- (s/maybe ByteArray)]
-  (when deflated-data
-    #?(:clj
-       (let [os (ByteArrayOutputStream.)
-             infs (InflaterOutputStream. os)]
-         (.write ^InflaterOutputStream infs ^bytes deflated-data)
-         (.close infs)
-         (.toByteArray os))
-       :cljs
-       (->> deflated-data
-            (signed-byte-array->unsigned-byte-array)
-            (pako/inflate)
-            (unsigned-byte-array->signed-byte-array)))))
-
 ;;;;;;;;;;;;;;;;;;;; Hashing ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (s/defn sha256 :- ByteArray
@@ -336,3 +293,25 @@
      (let [^goog.crypt.Sha256 hasher (goog.crypt.Sha256.)]
        (.update hasher ba)
        (byte-array (.digest hasher)))))
+
+;;;;;;;;;;;;;;;;;;;; Compression / Decompression ;;;;;;;;;;;;;;;;;;;;
+;;; clj only; cljs is problematic due to js dependencies
+
+#?(:clj
+   (s/defn deflate :- (s/maybe ByteArray)
+     [data :- (s/maybe ByteArray)]
+     (when data
+       (let [os (ByteArrayOutputStream.)
+             ds (DeflaterOutputStream. os)]
+         (.write ^DeflaterOutputStream ds ^bytes data)
+         (.close ds)
+         (.toByteArray os)))))
+#?(:clj
+   (s/defn inflate :- (s/maybe ByteArray)
+     [deflated-data :- (s/maybe ByteArray)]
+     (when deflated-data
+       (let [os (ByteArrayOutputStream.)
+             infs (InflaterOutputStream. os)]
+         (.write ^InflaterOutputStream infs ^bytes deflated-data)
+         (.close infs)
+         (.toByteArray os)))))

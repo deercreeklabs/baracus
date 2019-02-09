@@ -27,7 +27,7 @@ was a character on the 1980s TV series
 [The A-Team](https://en.wikipedia.org/wiki/The_A-Team).
 
 # Examples
-
+TBD
 
 # Data Types
 In Clojure, Baracus uses Java's primitive byte array. In ClojureScript,

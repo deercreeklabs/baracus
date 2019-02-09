@@ -22,6 +22,3 @@ Int8Array.prototype.length;
 Int8Array.prototype.slice;
 Uint8Array.prototype.length;
 var require;
-var pako;
-pako.deflate;
-pako.inflate;

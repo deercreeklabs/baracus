@@ -1,7 +1,4 @@
-(ns deercreeklabs.baracus.impl
-  (:refer-clojure :exclude [byte-array])
-  (:require
-   [schema.core :as s]))
+(ns deercreeklabs.baracus.cljs-utils)
 
 (defn byte-array-cljs
   ([size-or-seq]
@@ -33,6 +30,14 @@
        :else
        (.fill ba init-val-or-seq))
      ba)))
+
+(defn signed-byte-array->unsigned-byte-array [ba]
+  (when ba
+    (js/Uint8Array. ba)))
+
+(defn unsigned-byte-array->signed-byte-array [ba]
+  (when ba
+    (js/Int8Array. ba)))
 
 ;; Make cljs byte-arrays countable
 (extend-protocol ICounted

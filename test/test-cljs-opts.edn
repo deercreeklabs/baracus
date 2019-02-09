@@ -1,6 +1,4 @@
-{:install-deps true
- :npm-deps {:pako "1.0.8"}
- :optimizations :none
+{:optimizations :none
  :output-dir "target/test"
  :output-to "target/test/test_main.js"
  :parallel-build true
