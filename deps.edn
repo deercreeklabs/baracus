@@ -1,7 +1,7 @@
 {:deps
  {com.google.guava/guava {:mvn/version "27.0-jre"}
-  org.clojure/clojure {:mvn/version "1.10.0"}
-  org.clojure/clojurescript {:mvn/version "1.10.516"}
+  org.clojure/clojure {:mvn/version "1.10.1"}
+  org.clojure/clojurescript {:mvn/version "1.10.520"}
   dept24c/schema {:mvn/version "1.1.12"}}
 
  :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
@@ -11,6 +11,6 @@
  {:dev {:extra-deps {mvxcvi/puget {:mvn/version "1.1.0"}}}
 
   :test {:extra-paths ["test"]
-         :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-389"}
-                      lambdaisland/kaocha-cljs {:mvn/version "0.0-16"}
-                      lambdaisland/kaocha-cloverage {:mvn/version "0.0-22"}}}}}
+         :extra-deps {lambdaisland/kaocha {:mvn/version "0.0-529"}
+                      lambdaisland/kaocha-cljs {:mvn/version "0.0-40"}
+                      lambdaisland/kaocha-cloverage {:mvn/version "0.0-32"}}}}}
