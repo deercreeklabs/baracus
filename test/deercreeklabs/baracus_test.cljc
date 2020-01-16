@@ -1,11 +1,9 @@
 (ns deercreeklabs.baracus-test
   (:require
-   [clojure.test :refer [deftest is use-fixtures]]
+   [clojure.test :refer [deftest is]]
    [deercreeklabs.baracus :as ba]
    #?(:cljs [deercreeklabs.baracus.cljs-utils :as u])
    [schema.test :as st]))
-
-(use-fixtures :once st/validate-schemas)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Unit tests
 
