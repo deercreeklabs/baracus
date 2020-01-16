@@ -49,8 +49,8 @@
                          [s/Any]
                          s/Any)]
    (#?(:clj clojure.core/byte-array
-       :cljs u/byte-array-cljs
-       ) size init-val-or-seq)))
+       :cljs u/byte-array-cljs)
+    size init-val-or-seq)))
 
 (s/defn concat-byte-arrays :- (s/maybe ByteArray)
   "Concatenate a sequence of byte arrays"
