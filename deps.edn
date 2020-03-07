@@ -1,6 +1,5 @@
 {:deps
- {com.google.guava/guava {:mvn/version "27.0-jre"}
-  org.clojure/clojure {:mvn/version "1.10.1"}
+ {org.clojure/clojure {:mvn/version "1.10.1"}
   org.clojure/clojurescript {:mvn/version "1.10.597"}
   prismatic/schema {:mvn/version "1.1.12"}}
 
