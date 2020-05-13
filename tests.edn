@@ -2,7 +2,7 @@
 {:kaocha.watch/ignore ["**.#*" "**#*#"]
  :tests [{:id :unit
           :test-paths ["test/deercreeklabs/"]}
-         {:id :unit-cljs
+         {:id :unit-node
           :type :kaocha.type/cljs
           :test-paths ["test/deercreeklabs/"]
           :cljs/compiler-options #include "test/test-cljs-opts.edn"}]}

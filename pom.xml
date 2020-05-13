@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>deercreeklabs</groupId>
   <artifactId>baracus</artifactId>
-  <version>0.2.5</version>
+  <version>0.2.6</version>
   <name>baracus</name>
   <description>Utilities for working with byte arrays in Clojure &amp; Clojurescript</description>
   <url>https://github.com/deercreeklabs/baracus</url>
@@ -32,14 +32,9 @@
       <version>1.10.1</version>
     </dependency>
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>27.0-jre</version>
-    </dependency>
-    <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojurescript</artifactId>
-      <version>1.10.597</version>
+      <version>1.10.758</version>
     </dependency>
     <dependency>
       <groupId>prismatic</groupId>
