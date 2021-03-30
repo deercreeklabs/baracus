@@ -12,6 +12,7 @@
 # JS stuff
 /node_modules
 package.json
+/.shadow-cljs/
 
 # Emacs stuff
 *~

@@ -218,6 +218,7 @@
                  (conj out b)))))))
 
 (s/defn byte-array->b64 :- (s/maybe s/Str)
+  "Note that this does not return a URL-safe string."
   [b :- (s/maybe ByteArray)]
   (when b
     #?(:clj
