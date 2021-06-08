@@ -266,7 +266,14 @@
       #?(:clj (String. ca)
          :cljs (.join ^js/Array ca "")))))
 
+(def hex-chars-set #{\0 \1 \2 \3 \4 \5 \6 \7 \8 \9
+                     \a \b \c \d \e \f
+                     \A \B \C \D \E \F})
+
 (defn char->int [ch]
+  (when-not (hex-chars-set ch)
+    (throw (ex-info (str "Character `" ch "` is not a hex character.")
+                    {:ch ch})))
   #?(:clj (Character/digit ^Character ch 16)
      :cljs (js/parseInt ch 16)))
 

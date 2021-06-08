@@ -1,5 +1,6 @@
 (ns deercreeklabs.baracus-test
   (:require
+   [clojure.string :as str]
    [clojure.test :refer [deftest is]]
    [deercreeklabs.baracus :as ba]
    #?(:cljs [deercreeklabs.baracus.cljs-utils :as u])
@@ -120,13 +121,21 @@
                      "1c1d1e1f202122232425262728292a2b2c2d2e2f3031323334353637"
                      "38393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f50515253"
                      "5455565758595a5b5c5d5e5f60616263")
-        expected (ba/byte-array (range 100))]
-    (is (ba/equivalent-byte-arrays?
-         expected (ba/hex-str->byte-array hex-str)))
+        expected (ba/byte-array (range 100))
+        _ (is (ba/equivalent-byte-arrays?
+               expected (ba/hex-str->byte-array hex-str)))
+        hex-str-mixed "FF0Acd"
+        ba-1 (ba/hex-str->byte-array hex-str-mixed)
+        ba-2 (ba/hex-str->byte-array (str/lower-case hex-str-mixed))]
+    (is (ba/equivalent-byte-arrays? ba-1 ba-2))
     (is (thrown-with-msg?
          #?(:clj ExceptionInfo :cljs js/Error)
          #"must have an even number of characters"
-         (ba/hex-str->byte-array "0")))))
+         (ba/hex-str->byte-array "0")))
+    (is (thrown-with-msg?
+         #?(:clj ExceptionInfo :cljs js/Error)
+         #"is not a hex character"
+         (ba/hex-str->byte-array "fj")))))
 
 (deftest test-sha256
   (let [ba (ba/utf8->byte-array "Hello World...")
