@@ -273,7 +273,13 @@
 (s/defn hex-str->byte-array :- (s/maybe ByteArray)
   [s :- (s/maybe s/Str)]
   (when s
-    (let [ba-len (/ (count s) 2)
+    (let [str-len (count s)
+          _ (when-not (even? str-len)
+              (throw (ex-info (str "Hex string argument must have an even "
+                                   "number of characters. Got " str-len
+                                   " character(s).")
+                              {:str-len str-len})))
+          ba-len (/ str-len 2)
           ba (byte-array ba-len)]
       (dotimes [i ba-len]
         (let [j (* 2 i)]
