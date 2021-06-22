@@ -139,8 +139,15 @@
 
 (deftest test-sha256
   (let [ba (ba/utf8->byte-array "Hello World...")
-        hash-hex (str "b49b84d7a9d40a621b26cdc2c5f7be74"
-                      "c022b3a1e51146e28072aa97db59cd00")
-        expected-ba (ba/hex-str->byte-array hash-hex)
-        ret (ba/sha256 ba)]
-    (is (ba/equivalent-byte-arrays? expected-ba ret))))
+        expected-hash-hex (str "b49b84d7a9d40a621b26cdc2c5f7be74"
+                               "c022b3a1e51146e28072aa97db59cd00")
+        hash-hex (-> (ba/sha256 ba)
+                     (ba/byte-array->hex-str))]
+    (is (= expected-hash-hex hash-hex))))
+
+(deftest test-sha1
+  (let [ba (ba/utf8->byte-array "Hello World...")
+        expected-hash-hex "983f82f0799e7c4ce6028d0b8e4415e7fc7370f8"
+        hash-hex (-> (ba/sha1 ba)
+                     (ba/byte-array->hex-str))]
+    (is (= expected-hash-hex hash-hex))))

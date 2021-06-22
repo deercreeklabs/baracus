@@ -4,7 +4,8 @@
    #?(:cljs [deercreeklabs.baracus.cljs-utils :as u])
    #?(:cljs [goog.crypt :as gc])
    #?(:cljs [goog.crypt.base64 :as b64])
-   #?(:cljs [goog.crypt.Sha256 :as Sha256])
+   #?(:cljs [goog.crypt.Sha1])
+   #?(:cljs [goog.crypt.Sha256])
    [schema.core :as s])
   #?(:clj
      (:import
@@ -305,6 +306,16 @@
        (.digest md ba))
      :cljs
      (let [^goog.crypt.Sha256 hasher (goog.crypt.Sha256.)]
+       (.update hasher ba)
+       (byte-array (.digest hasher)))))
+
+(s/defn sha1 :- ByteArray
+  [ba :- ByteArray]
+  #?(:clj
+     (let [^MessageDigest md (MessageDigest/getInstance "SHA-1")]
+       (.digest md ba))
+     :cljs
+     (let [^goog.crypt.Sha1 hasher (goog.crypt.Sha1.)]
        (.update hasher ba)
        (byte-array (.digest hasher)))))
 
