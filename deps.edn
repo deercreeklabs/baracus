@@ -1,5 +1,5 @@
 {:deps
- {com.google.guava/guava {:mvn/version "30.1.1-jre"}
+ {com.google.guava/guava {:mvn/version "31.0.1-jre"}
   prismatic/schema {:mvn/version "1.1.12"}}
 
  :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
@@ -8,7 +8,7 @@
  :aliases
  {:clj {:extra-deps {org.clojure/clojure {:mvn/version "1.10.3"}}}
 
-  :cljs {:extra-deps {org.clojure/clojurescript {:mvn/version "1.10.866"}}}
+  :cljs {:extra-deps {org.clojure/clojurescript {:mvn/version "1.10.879"}}}
 
   :dev {:extra-deps {mvxcvi/puget {:mvn/version "1.3.1"}
                      org.clojure/tools.namespace {:mvn/version "1.1.0"}}}
@@ -21,8 +21,8 @@
   :test-clj {:extra-paths ["test"]
              :extra-deps {com.cognitect/test-runner
                           {:git/url "https://github.com/cognitect-labs/test-runner.git"
-                           :sha "62ef1de18e076903374306060ac0e8a752e57c86"}}
+                           :sha "dd6da11611eeb87f08780a30ac8ea6012d4c05ce"}}
              :main-opts ["-m" "cognitect.test-runner"]}
 
   :test-cljs {:extra-paths ["test"]
-              :extra-deps {thheller/shadow-cljs {:mvn/version "2.11.26"}}}}}
+              :extra-deps {thheller/shadow-cljs {:mvn/version "2.15.12"}}}}}
