@@ -151,3 +151,10 @@
         hash-hex (-> (ba/sha1 ba)
                      (ba/byte-array->hex-str))]
     (is (= expected-hash-hex hash-hex))))
+
+(deftest test-md5
+  (let [ba (ba/utf8->byte-array "Hello World...")
+        expected-hash-hex "e258de2aa4653332b85671a54d7ef314"
+        hash-hex (-> (ba/md5 ba)
+                     (ba/byte-array->hex-str))]
+    (is (= expected-hash-hex hash-hex))))

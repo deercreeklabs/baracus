@@ -4,6 +4,7 @@
    #?(:cljs [deercreeklabs.baracus.cljs-utils :as u])
    #?(:cljs [goog.crypt :as gc])
    #?(:cljs [goog.crypt.base64 :as b64])
+   #?(:cljs [goog.crypt.Md5])
    #?(:cljs [goog.crypt.Sha1])
    #?(:cljs [goog.crypt.Sha256])
    [schema.core :as s])
@@ -316,6 +317,16 @@
        (.digest md ba))
      :cljs
      (let [^goog.crypt.Sha1 hasher (goog.crypt.Sha1.)]
+       (.update hasher ba)
+       (byte-array (.digest hasher)))))
+
+(s/defn md5 :- ByteArray
+  [ba :- ByteArray]
+  #?(:clj
+     (let [^MessageDigest md (MessageDigest/getInstance "MD5")]
+       (.digest md ba))
+     :cljs
+     (let [^goog.crypt.Md5 hasher (goog.crypt.Md5.)]
        (.update hasher ba)
        (byte-array (.digest hasher)))))
 
