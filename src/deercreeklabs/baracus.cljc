@@ -78,7 +78,7 @@
    checks identity, not equality. Note that this is an O(n) operation."
   [a :- ByteArray
    b :- ByteArray]
-  #?(:clj (java.util.Arrays/equals a b)
+  #?(:clj (Arrays/equals a b)
      :cljs (and
              (= (count a) (count b))
              (let [num (count a)]
