@@ -38,7 +38,6 @@
     (boolean (= ByteArray
                 (#?(:clj class :cljs type) arg)))))
 
-
 (s/defn byte-array :- ByteArray
   "Construct a byte array.
    Args:
@@ -79,16 +78,17 @@
    checks identity, not equality. Note that this is an O(n) operation."
   [a :- ByteArray
    b :- ByteArray]
-  (and
-   (= (count a) (count b))
-   (let [num (count a)]
-     (loop [i 0]
-       (if (>= i num)
-         true
-         (if (= (aget ^bytes a i)
-                (aget ^bytes b i))
-           (recur (int (inc i)))
-           false))))))
+  #?(:clj (Arrays/equals a b)
+     :cljs (and
+             (= (count a) (count b))
+             (let [num (count a)]
+               (loop [i 0]
+                 (if (>= i num)
+                   true
+                   (if (= (aget ^bytes a i)
+                          (aget ^bytes b i))
+                     (recur (int (inc i)))
+                     false)))))))
 
 (s/defn byte-array->debug-str :- s/Str
   [ba :- ByteArray]
