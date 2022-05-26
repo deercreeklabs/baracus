@@ -14,7 +14,8 @@
       (java.io ByteArrayInputStream ByteArrayOutputStream)
       (java.security MessageDigest)
       (java.util Arrays Base64)
-      (java.util.zip DeflaterOutputStream InflaterOutputStream))))
+      (java.util.zip DeflaterOutputStream InflaterOutputStream)
+      (java.util.zip GZIPInputStream GZIPOutputStream))))
 
 #?(:cljs
    (set! *warn-on-infer* true))
@@ -351,3 +352,29 @@
          (.write ^InflaterOutputStream infs ^bytes deflated-data)
          (.close infs)
          (.toByteArray os)))))
+
+#?(:clj
+   (defn gzip [ba]
+     (let [len (count ba)
+           baos ^ByteArrayOutputStream (ByteArrayOutputStream. len)
+           zipper ^GZIPOutputStream (GZIPOutputStream. baos len true)]
+       (.write zipper (bytes ba))
+       (.close zipper)
+       (.toByteArray baos))))
+
+#?(:clj
+   (defn ungzip [ba]
+     (let [initial-buf-size (int (* 2 (count ba)))
+           bais ^ByteArrayInputStream (ByteArrayInputStream. ba)
+           unzipper ^GZIPInputStream (GZIPInputStream. bais initial-buf-size)
+           baos ^ByteArrayOutputStream (ByteArrayOutputStream. initial-buf-size)
+           buf-ba (byte-array initial-buf-size)]
+       (loop []
+         (let [bytes-read (.read unzipper buf-ba)]
+           (if (= -1 bytes-read)
+             (do
+               (.close unzipper)
+               (.toByteArray baos))
+             (do
+               (.write baos (bytes buf-ba) 0 bytes-read)
+               (recur))))))))
