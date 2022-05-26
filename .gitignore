@@ -13,7 +13,6 @@
 /.shadow-cljs/
 /node_modules
 /out
-package.json
 /resources/public/js/test
 
 # Emacs stuff
