@@ -102,7 +102,7 @@
        (is (ba/equivalent-byte-arrays? data rt-data)))))
 
 #?(:clj
-   (deftest test-gzip-ungzip-data
+   (deftest test-gzip-gunzip-data
      (let [data (str "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAABBBBBBBBB\n"
                      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAABBBBBBBBB\n"
                      "fjmalkalsdfjalakfajllkjlajlkalkdjfalskfjaslfjkalfajfl\n"
@@ -112,7 +112,7 @@
            _ (is (= 26800 (count ba)))
            zipped (ba/gzip ba)
            _ (is (= 226 (count zipped)))
-           rt-ba (ba/ungzip zipped)]
+           rt-ba (ba/gunzip zipped)]
        (is (ba/equivalent-byte-arrays? ba rt-ba)))))
 
 (deftest test-constructor-w-generic-arrays

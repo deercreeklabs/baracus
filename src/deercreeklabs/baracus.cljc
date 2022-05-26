@@ -363,7 +363,7 @@
        (.toByteArray baos))))
 
 #?(:clj
-   (defn ungzip [ba]
+   (defn gunzip [ba]
      (let [initial-buf-size (int (* 2 (count ba)))
            bais ^ByteArrayInputStream (ByteArrayInputStream. ba)
            unzipper ^GZIPInputStream (GZIPInputStream. bais initial-buf-size)
