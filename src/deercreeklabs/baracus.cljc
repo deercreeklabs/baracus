@@ -178,7 +178,8 @@
 
 (s/defn decode-int :- [(s/one s/Int :int)
                        (s/optional ByteArray :unread-remainder)]
-  "Takes an zig-zag encoded byte array and reads an integer from it.
+  "Takes an variable-length zig-zag encoded byte array and reads an integer
+   from it.
    Returns a vector of the integer and, optionally, any unread bytes."
   [ba :- ByteArray]
   (loop [n 0
@@ -208,7 +209,8 @@
                        :i i}))))))))
 
 (s/defn encode-int :- ByteArray
-  "Zig zag encodes an integer. Returns the encoded bytes."
+  "Encodes an integer using variable length zig-zag coding.
+   Returns the encoded bytes."
   [i :- s/Int]
   (let [zz-n (bit-xor (bit-shift-left i 1) (bit-shift-right i 31))]
     (loop [n zz-n
