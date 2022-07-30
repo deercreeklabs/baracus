@@ -256,11 +256,12 @@
        :cljs
        (js/Int8Array. (gc/stringToUtf8ByteArray s)))))
 
-(s/defn byte-array->hex-str :- (s/maybe s/Str)
-  [ba :- (s/maybe ByteArray)]
+(defn byte-array->hex-str* [{:keys [ba upper-case?]}]
   (when ba
     (let [len (count ba)
-          hex-chars [\0 \1 \2 \3 \4 \5 \6 \7 \8 \9 \a \b \c \d \e \f]
+          hex-chars (if upper-case?
+                      [\0 \1 \2 \3 \4 \5 \6 \7 \8 \9 \A \B \C \D \E \F]
+                      [\0 \1 \2 \3 \4 \5 \6 \7 \8 \9 \a \b \c \d \e \f])
           ca (#?(:clj char-array :cljs js/Array.) (* 2 len))]
       (dotimes [i len]
         (let [b (bit-and (aget ^bytes ba i) 0xff)
@@ -270,6 +271,15 @@
                                                      (bit-and b 0x0f)))))
       #?(:clj (String. ca)
          :cljs (.join ^js/Array ca "")))))
+
+(s/defn byte-array->hex-str :- (s/maybe s/Str)
+  [ba :- (s/maybe ByteArray)]
+  (byte-array->hex-str* {:ba ba}))
+
+(s/defn byte-array->upper-hex-str :- (s/maybe s/Str)
+  [ba :- (s/maybe ByteArray)]
+  (byte-array->hex-str* {:ba ba
+                         :upper-case? true}))
 
 (def hex-chars-set #{\0 \1 \2 \3 \4 \5 \6 \7 \8 \9
                      \a \b \c \d \e \f
