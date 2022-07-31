@@ -138,6 +138,14 @@
                       "5455565758595A5B5C5D5E5F60616263")]
     (is (= expected (ba/byte-array->upper-hex-str data)))))
 
+(deftest test-byte-array->b16-alpha-str
+  (let [data (ba/byte-array (range 100))
+        expected (str "aaabacadacaeafagahaiajakalamanaobabbbcbdbcbebfbgbhbibjbk"
+                      "blbmbnbocacbcccdcccecfcgchcicjckclcmcncodadbdcdddcdedfdg"
+                      "dhdidjdkdldmdndocacbcccdcccecfcgchcicjckclcmcncoeaebeced"
+                      "eceeefegeheiejekelemeneofafbfcfd")]
+    (is (= expected (ba/byte-array->b16-alpha-str data)))))
+
 (deftest test-hex-str->byte-array
   (let [hex-str (str "000102030405060708090a0b0c0d0e0f101112131415161718191a1b"
                      "1c1d1e1f202122232425262728292a2b2c2d2e2f3031323334353637"
@@ -164,21 +172,10 @@
                      "1C1D1E1F202122232425262728292A2B2C2D2E2F3031323334353637"
                      "38393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F50515253"
                      "5455565758595A5B5C5D5E5F60616263")
-        expected (ba/byte-array (range 100))
-        _ (is (ba/equivalent-byte-arrays?
-               expected (ba/hex-str->byte-array hex-str)))
-        hex-str-mixed "FF0Acd"
-        ba-1 (ba/hex-str->byte-array hex-str-mixed)
-        ba-2 (ba/hex-str->byte-array (str/lower-case hex-str-mixed))]
-    (is (ba/equivalent-byte-arrays? ba-1 ba-2))
-    (is (thrown-with-msg?
-         #?(:clj ExceptionInfo :cljs js/Error)
-         #"must have an even number of characters"
-         (ba/hex-str->byte-array "0")))
-    (is (thrown-with-msg?
-         #?(:clj ExceptionInfo :cljs js/Error)
-         #"is not a hex character"
-         (ba/hex-str->byte-array "fj")))))
+        expected (ba/byte-array (range 100))]
+    (is (ba/equivalent-byte-arrays?
+         expected
+         (ba/hex-str->byte-array hex-str)))))
 
 (deftest test-sha256
   (let [ba (ba/utf8->byte-array "Hello World...")
