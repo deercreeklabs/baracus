@@ -3,7 +3,8 @@
    [clojure.string :as str]
    [clojure.test :refer [deftest is]]
    [deercreeklabs.baracus :as ba]
-   #?(:cljs [deercreeklabs.baracus.cljs-utils :as u])
+   [deercreeklabs.baracus.utils :as u]
+   #?(:cljs [deercreeklabs.baracus.cljs-utils :as cu])
    [schema.test :as st])
   #?(:clj
      (:import
@@ -57,14 +58,14 @@
    (deftest test-signed-array-conversions
      (let [s (ba/byte-array [-1 2 -127])
            u (js/Uint8Array. s)
-           s1 (u/unsigned-byte-array->signed-byte-array u)
-           u1 (u/signed-byte-array->unsigned-byte-array s)]
+           s1 (cu/unsigned-byte-array->signed-byte-array u)
+           u1 (cu/signed-byte-array->unsigned-byte-array s)]
        (is (= -1 (aget s 0)))
        (is (= -1 (aget s1 0)))
        (is (= 255 (aget u 0)))
        (is (= 255 (aget u1 0)))
        (is (ba/equivalent-byte-arrays?
-            s (u/unsigned-byte-array->signed-byte-array u))))))
+            s (cu/unsigned-byte-array->signed-byte-array u))))))
 
 #?(:clj
    (deftest test-deflate-inflate
@@ -198,3 +199,13 @@
         hash-hex (-> (ba/md5 ba)
                      (ba/byte-array->hex-str))]
     (is (= expected-hash-hex hash-hex))))
+
+(deftest test-equivalent-byte-arrays-speed
+  (let [ba (ba/byte-array (range 30000000))
+        start (u/current-time-ms)
+        _ (ba/equivalent-byte-arrays? ba ba)
+        end (u/current-time-ms)
+        elapsed (- end start)
+        expected-max-elapsed #?(:clj 100 :cljs 100)]
+    #_(println (str #?(:clj "clj" :cljs "cljs") ": " elapsed " ms"))
+    (is (< elapsed expected-max-elapsed))))
