@@ -399,13 +399,22 @@
                (recur))))))))
 
 #?(:clj
-   (defn zstd-compress [ba]
-     (let [len (count ba)
-           baos ^ByteArrayOutputStream (ByteArrayOutputStream. len)
-           zos ^ZstdOutputStream (ZstdOutputStream. baos)]
-       (.write zos (bytes ba) 0 len)
-       (.close zos)
-       (.toByteArray baos))))
+   (defn zstd-compress
+     ([ba]
+      ;; 3 is the default level in the Zstd reference implementation. The min
+      ;; in -7 and the max is 22. They warn against 20-22 as they use more
+      ;; memory. Wikipedia states "Compression speed can vary by a factor of 20
+      ;; or more between the fastest and slowest levels, while decompression is
+      ;; uniformly fast, varying by less than 20% between the fastest and
+      ;; slowest levels."
+      (zstd-compress ba 3))
+     ([ba ^Integer level]
+      (let [len (count ba)
+            baos ^ByteArrayOutputStream (ByteArrayOutputStream. len)
+            zos ^ZstdOutputStream (ZstdOutputStream. baos level)]
+        (.write zos (bytes ba) 0 len)
+        (.close zos)
+        (.toByteArray baos)))))
 
 #?(:clj
    (defn zstd-decompress [ba]
