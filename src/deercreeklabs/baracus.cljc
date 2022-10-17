@@ -11,6 +11,7 @@
   #?(:clj
      (:import
       (com.google.common.primitives Bytes)
+      (com.github.luben.zstd ZstdInputStream ZstdOutputStream)
       (java.io ByteArrayInputStream ByteArrayOutputStream)
       (java.security MessageDigest)
       (java.util Arrays Base64)
@@ -392,6 +393,32 @@
            (if (= -1 bytes-read)
              (do
                (.close unzipper)
+               (.toByteArray baos))
+             (do
+               (.write baos (bytes buf-ba) 0 bytes-read)
+               (recur))))))))
+
+#?(:clj
+   (defn zstd-compress [ba]
+     (let [len (count ba)
+           baos ^ByteArrayOutputStream (ByteArrayOutputStream. len)
+           zos ^ZstdOutputStream (ZstdOutputStream. baos)]
+       (.write zos (bytes ba) 0 len)
+       (.close zos)
+       (.toByteArray baos))))
+
+#?(:clj
+   (defn zstd-decompress [ba]
+     (let [initial-buf-size (int (* 2 (count ba)))
+           bais ^ByteArrayInputStream (ByteArrayInputStream. ba)
+           zis ^ZstdInputStream (ZstdInputStream. bais)
+           baos ^ByteArrayOutputStream (ByteArrayOutputStream. initial-buf-size)
+           buf-ba (byte-array initial-buf-size)]
+       (loop []
+         (let [bytes-read (.read zis buf-ba)]
+           (if (= -1 bytes-read)
+             (do
+               (.close zis)
                (.toByteArray baos))
              (do
                (.write baos (bytes buf-ba) 0 bytes-read)

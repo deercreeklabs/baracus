@@ -115,6 +115,20 @@
            rt-ba (ba/gunzip zipped)]
        (is (ba/equivalent-byte-arrays? ba rt-ba)))))
 
+#?(:clj
+   (deftest test-zstd-round-trip-data
+     (let [data (str "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAABBBBBBBBB\n"
+                     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAABBBBBBBBB\n"
+                     "fjmalkalsdfjalakfajllkjlajlkalkdjfalskfjaslfjkalfajfl\n"
+                     "fjmalkalsdfjalakfajllkjlajlkalkdjfalskfjaslfjkalfajfl\n"
+                     "11111111111133333333333333333333333333344444444444444\n")
+           ba (ba/concat-byte-arrays (repeat 100 (ba/utf8->byte-array data)))
+           _ (is (= 26800 (count ba)))
+           compressed (ba/zstd-compress ba)
+           _ (is (= 124 (count compressed)))
+           rt-ba (ba/zstd-decompress compressed)]
+       (is (ba/equivalent-byte-arrays? ba rt-ba)))))
+
 (deftest test-constructor-w-generic-arrays
   (let [data [1 3 5]
         ret (ba/byte-array #?(:clj (byte-array data)
