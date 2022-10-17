@@ -399,13 +399,16 @@
                (recur))))))))
 
 #?(:clj
-   (defn zstd-compress [ba]
-     (let [len (count ba)
-           baos ^ByteArrayOutputStream (ByteArrayOutputStream. len)
-           zos ^ZstdOutputStream (ZstdOutputStream. baos)]
-       (.write zos (bytes ba) 0 len)
-       (.close zos)
-       (.toByteArray baos))))
+   (defn zstd-compress
+     ([ba]
+      (zstd-compress ba 3)) ; 3 is the default Zstd level.
+     ([ba ^Integer level]
+      (let [len (count ba)
+            baos ^ByteArrayOutputStream (ByteArrayOutputStream. len)
+            zos ^ZstdOutputStream (ZstdOutputStream. baos level)]
+        (.write zos (bytes ba) 0 len)
+        (.close zos)
+        (.toByteArray baos)))))
 
 #?(:clj
    (defn zstd-decompress [ba]
