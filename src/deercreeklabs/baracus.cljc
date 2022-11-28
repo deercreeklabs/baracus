@@ -1,6 +1,8 @@
 (ns deercreeklabs.baracus
   (:refer-clojure :exclude [byte-array])
   (:require
+    [clojure.string]
+    #?(:clj [clojure.java.io])
    #?(:cljs [deercreeklabs.baracus.cljs-utils :as u])
    #?(:cljs [goog.crypt :as gc])
    #?(:cljs [goog.crypt.base64 :as b64])
@@ -194,8 +196,7 @@
                            (- 0)
                            (bit-xor (unsigned-bit-shift-right zz-n 1)))]
           (if (< (inc n) (count ba))
-            (do
-              [int-out (slice-byte-array ba (inc n))])
+            [int-out (slice-byte-array ba (inc n))]
             [int-out]))
         (let [out (-> (bit-and b 0x7f)
                       (bit-shift-left i)

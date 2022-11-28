@@ -6,7 +6,7 @@
 
 (nodejs/enable-util-print!)
 
-(defn -main [& args]
+(defn -main [& _args]
   (run-tests 'deercreeklabs.baracus-test))
 
 (set! *main-cli-fn* -main)
