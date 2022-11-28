@@ -4,8 +4,7 @@
    [clojure.test :refer [deftest is]]
    [deercreeklabs.baracus :as ba]
    [deercreeklabs.baracus.utils :as u]
-   #?(:cljs [deercreeklabs.baracus.cljs-utils :as cu])
-   [schema.test :as st])
+   #?(:cljs [deercreeklabs.baracus.cljs-utils :as cu]))
   #?(:clj
      (:import
       (clojure.lang ExceptionInfo))))
