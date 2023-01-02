@@ -1,8 +1,5 @@
 {
   "devDependencies": {
     "shadow-cljs": "2.19.8"
-  },
-  "dependencies": {
-    "pako": "2.0.4"
   }
 }
