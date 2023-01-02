@@ -323,33 +323,36 @@
 
 (s/defn sha256 :- ByteArray
   [ba :- ByteArray]
-  #?(:clj
-     (let [^MessageDigest md (MessageDigest/getInstance "SHA-256")]
-       (.digest md ba))
-     :cljs
-     (let [^goog.crypt.Sha256 hasher (goog.crypt.Sha256.)]
-       (.update hasher ba)
-       (byte-array (.digest hasher)))))
+  (when ba
+    #?(:clj
+       (let [^MessageDigest md (MessageDigest/getInstance "SHA-256")]
+         (.digest md ba))
+       :cljs
+       (let [^goog.crypt.Sha256 hasher (goog.crypt.Sha256.)]
+         (.update hasher ba)
+         (byte-array (.digest hasher))))))
 
 (s/defn sha1 :- ByteArray
   [ba :- ByteArray]
-  #?(:clj
-     (let [^MessageDigest md (MessageDigest/getInstance "SHA-1")]
-       (.digest md ba))
-     :cljs
-     (let [^goog.crypt.Sha1 hasher (goog.crypt.Sha1.)]
-       (.update hasher ba)
-       (byte-array (.digest hasher)))))
+  (when ba
+    #?(:clj
+       (let [^MessageDigest md (MessageDigest/getInstance "SHA-1")]
+         (.digest md ba))
+       :cljs
+       (let [^goog.crypt.Sha1 hasher (goog.crypt.Sha1.)]
+         (.update hasher ba)
+         (byte-array (.digest hasher))))))
 
 (s/defn md5 :- ByteArray
   [ba :- ByteArray]
-  #?(:clj
-     (let [^MessageDigest md (MessageDigest/getInstance "MD5")]
-       (.digest md ba))
-     :cljs
-     (let [^goog.crypt.Md5 hasher (goog.crypt.Md5.)]
-       (.update hasher ba)
-       (byte-array (.digest hasher)))))
+  (when ba
+    #?(:clj
+       (let [^MessageDigest md (MessageDigest/getInstance "MD5")]
+         (.digest md ba))
+       :cljs
+       (let [^goog.crypt.Md5 hasher (goog.crypt.Md5.)]
+         (.update hasher ba)
+         (byte-array (.digest hasher))))))
 
 ;;;;;;;;;;;;;;;;;;;; Compression / Decompression ;;;;;;;;;;;;;;;;;;;;
 ;;; clj only; cljs is problematic due to js dependencies
@@ -373,17 +376,17 @@
          (.close infs)
          (.toByteArray os)))))
 
-#?(:clj
-   (defn gzip [ba]
+
+(defn gzip [ba]
+  #?(:clj
      (let [len (count ba)
            baos ^ByteArrayOutputStream (ByteArrayOutputStream. len)
            zipper ^GZIPOutputStream (GZIPOutputStream. baos len true)]
        (.write zipper (bytes ba))
-       (.close zipper)
-       (.toByteArray baos))))
+       (.close zipper))))
 
-#?(:clj
-   (defn gunzip [ba]
+(defn gunzip [ba]
+  #?(:clj
      (let [initial-buf-size (int (* 2 (count ba)))
            bais ^ByteArrayInputStream (ByteArrayInputStream. ba)
            unzipper ^GZIPInputStream (GZIPInputStream. bais initial-buf-size)
