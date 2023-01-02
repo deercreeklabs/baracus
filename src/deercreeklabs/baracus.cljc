@@ -378,29 +378,31 @@
 
 
 (defn gzip [ba]
-  #?(:clj
-     (let [len (count ba)
-           baos ^ByteArrayOutputStream (ByteArrayOutputStream. len)
-           zipper ^GZIPOutputStream (GZIPOutputStream. baos len true)]
-       (.write zipper (bytes ba))
-       (.close zipper))))
+  (when ba
+    #?(:clj
+       (let [len (count ba)
+             baos ^ByteArrayOutputStream (ByteArrayOutputStream. len)
+             zipper ^GZIPOutputStream (GZIPOutputStream. baos len true)]
+         (.write zipper (bytes ba))
+         (.close zipper)))))
 
 (defn gunzip [ba]
-  #?(:clj
-     (let [initial-buf-size (int (* 2 (count ba)))
-           bais ^ByteArrayInputStream (ByteArrayInputStream. ba)
-           unzipper ^GZIPInputStream (GZIPInputStream. bais initial-buf-size)
-           baos ^ByteArrayOutputStream (ByteArrayOutputStream. initial-buf-size)
-           buf-ba (byte-array initial-buf-size)]
-       (loop []
-         (let [bytes-read (.read unzipper buf-ba)]
-           (if (= -1 bytes-read)
-             (do
-               (.close unzipper)
-               (.toByteArray baos))
-             (do
-               (.write baos (bytes buf-ba) 0 bytes-read)
-               (recur))))))))
+  (when ba
+    #?(:clj
+       (let [initial-buf-size (int (* 2 (count ba)))
+             bais ^ByteArrayInputStream (ByteArrayInputStream. ba)
+             unzipper ^GZIPInputStream (GZIPInputStream. bais initial-buf-size)
+             baos ^ByteArrayOutputStream (ByteArrayOutputStream. initial-buf-size)
+             buf-ba (byte-array initial-buf-size)]
+         (loop []
+           (let [bytes-read (.read unzipper buf-ba)]
+             (if (= -1 bytes-read)
+               (do
+                 (.close unzipper)
+                 (.toByteArray baos))
+               (do
+                 (.write baos (bytes buf-ba) 0 bytes-read)
+                 (recur)))))))))
 
 #?(:clj
    (defn zstd-compress
@@ -413,26 +415,28 @@
       ;; slowest levels."
       (zstd-compress ba 3))
      ([ba ^Integer level]
-      (let [len (count ba)
-            baos ^ByteArrayOutputStream (ByteArrayOutputStream. len)
-            zos ^ZstdOutputStream (ZstdOutputStream. baos level)]
-        (.write zos (bytes ba) 0 len)
-        (.close zos)
-        (.toByteArray baos)))))
+      (when ba
+        (let [len (count ba)
+              baos ^ByteArrayOutputStream (ByteArrayOutputStream. len)
+              zos ^ZstdOutputStream (ZstdOutputStream. baos level)]
+          (.write zos (bytes ba) 0 len)
+          (.close zos)
+          (.toByteArray baos))))))
 
 #?(:clj
    (defn zstd-decompress [ba]
-     (let [initial-buf-size (int (* 2 (count ba)))
-           bais ^ByteArrayInputStream (ByteArrayInputStream. ba)
-           zis ^ZstdInputStream (ZstdInputStream. bais)
-           baos ^ByteArrayOutputStream (ByteArrayOutputStream. initial-buf-size)
-           buf-ba (byte-array initial-buf-size)]
-       (loop []
-         (let [bytes-read (.read zis buf-ba)]
-           (if (= -1 bytes-read)
-             (do
-               (.close zis)
-               (.toByteArray baos))
-             (do
-               (.write baos (bytes buf-ba) 0 bytes-read)
-               (recur))))))))
+     (when ba
+       (let [initial-buf-size (int (* 2 (count ba)))
+             bais ^ByteArrayInputStream (ByteArrayInputStream. ba)
+             zis ^ZstdInputStream (ZstdInputStream. bais)
+             baos ^ByteArrayOutputStream (ByteArrayOutputStream. initial-buf-size)
+             buf-ba (byte-array initial-buf-size)]
+         (loop []
+           (let [bytes-read (.read zis buf-ba)]
+             (if (= -1 bytes-read)
+               (do
+                 (.close zis)
+                 (.toByteArray baos))
+               (do
+                 (.write baos (bytes buf-ba) 0 bytes-read)
+                 (recur)))))))))
