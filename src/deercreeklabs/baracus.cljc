@@ -328,7 +328,7 @@
        (.digest md ba))
      :cljs
      (let [^goog.crypt.Sha256 hasher (goog.crypt.Sha256.)]
-       (.update hasher ba)
+       (.update hasher (js/Uint8Array. ba))
        (byte-array (.digest hasher)))))
 
 (s/defn sha1 :- ByteArray
@@ -338,7 +338,7 @@
        (.digest md ba))
      :cljs
      (let [^goog.crypt.Sha1 hasher (goog.crypt.Sha1.)]
-       (.update hasher ba)
+       (.update hasher (js/Uint8Array. ba))
        (byte-array (.digest hasher)))))
 
 (s/defn md5 :- ByteArray
@@ -348,7 +348,7 @@
        (.digest md ba))
      :cljs
      (let [^goog.crypt.Md5 hasher (goog.crypt.Md5.)]
-       (.update hasher ba)
+       (.update hasher (js/Uint8Array. ba))
        (byte-array (.digest hasher)))))
 
 ;;;;;;;;;;;;;;;;;;;; Compression / Decompression ;;;;;;;;;;;;;;;;;;;;
