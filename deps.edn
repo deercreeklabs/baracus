@@ -1,5 +1,5 @@
 {:deps
- {com.google.guava/guava {:mvn/version "31.1-jre"}
+ {com.google.guava/guava {:mvn/version "32.0.0-jre"}
   com.github.luben/zstd-jni {:mvn/version "1.5.2-4"}
   prismatic/schema {:mvn/version "1.2.1"}}
 
