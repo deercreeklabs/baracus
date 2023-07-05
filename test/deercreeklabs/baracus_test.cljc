@@ -32,6 +32,19 @@
     (is (nil? (ba/concat-byte-arrays [])))
     (is (nil? (ba/concat-byte-arrays nil)))))
 
+(deftest test-concat-arrays-speed
+  (let [bas (mapv (fn [i]
+                    (ba/byte-array (range 300)))
+                  (range 10))
+        start (u/current-time-ms)
+        _ (doseq [i (range 1e5)]
+            (ba/concat-byte-arrays bas))
+        end (u/current-time-ms)
+        elapsed (- end start)
+        expected-max-elapsed #?(:clj 200 :cljs 500)]
+    #_(println (str #?(:clj "clj" :cljs "cljs") ": " elapsed " ms"))
+    (is (< elapsed expected-max-elapsed))))
+
 (deftest test-slice
   (let [ba (ba/byte-array (range 10))
         s1 (ba/slice-byte-array ba 0 3)
@@ -113,48 +126,6 @@
            zipped (ba/gzip ba)
            _ (is (= 226 (count zipped)))
            rt-ba (ba/gunzip zipped)]
-       (is (ba/equivalent-byte-arrays? ba rt-ba)))))
-
-#?(:clj
-   (deftest test-zstd-round-trip-data
-     (let [data (str "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAABBBBBBBBB\n"
-                     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAABBBBBBBBB\n"
-                     "fjmalkalsdfjalakfajllkjlajlkalkdjfalskfjaslfjkalfajfl\n"
-                     "fjmalkalsdfjalakfajllkjlajlkalkdjfalskfjaslfjkalfajfl\n"
-                     "11111111111133333333333333333333333333344444444444444\n")
-           ba (ba/concat-byte-arrays (repeat 100 (ba/utf8->byte-array data)))
-           _ (is (= 26800 (count ba)))
-           compressed (ba/zstd-compress ba)
-           _ (is (= 124 (count compressed)))
-           rt-ba (ba/zstd-decompress compressed)]
-       (is (ba/equivalent-byte-arrays? ba rt-ba)))))
-
-#?(:clj
-   (deftest test-zstd-min-round-trip-data
-     (let [data (str "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAABBBBBBBBB\n"
-                     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAABBBBBBBBB\n"
-                     "fjmalkalsdfjalakfajllkjlajlkalkdjfalskfjaslfjkalfajfl\n"
-                     "fjmalkalsdfjalakfajllkjlajlkalkdjfalskfjaslfjkalfajfl\n"
-                     "11111111111133333333333333333333333333344444444444444\n")
-           ba (ba/concat-byte-arrays (repeat 100 (ba/utf8->byte-array data)))
-           _ (is (= 26800 (count ba)))
-           compressed (ba/zstd-compress ba -7)
-           _ (is (= 215 (count compressed)))
-           rt-ba (ba/zstd-decompress compressed)]
-       (is (ba/equivalent-byte-arrays? ba rt-ba)))))
-
-#?(:clj
-   (deftest test-zstd-max-round-trip-data
-     (let [data (str "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAABBBBBBBBB\n"
-                     "AAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nAAAAAAAAAAAAABBBBBBBBB\n"
-                     "fjmalkalsdfjalakfajllkjlajlkalkdjfalskfjaslfjkalfajfl\n"
-                     "fjmalkalsdfjalakfajllkjlajlkalkdjfalskfjaslfjkalfajfl\n"
-                     "11111111111133333333333333333333333333344444444444444\n")
-           ba (ba/concat-byte-arrays (repeat 100 (ba/utf8->byte-array data)))
-           _ (is (= 26800 (count ba)))
-           compressed (ba/zstd-compress ba 22)
-           _ (is (= 97 (count compressed)))
-           rt-ba (ba/zstd-decompress compressed)]
        (is (ba/equivalent-byte-arrays? ba rt-ba)))))
 
 (deftest test-constructor-w-generic-arrays

@@ -1,9 +1,4 @@
-{:deps
- {com.google.guava/guava {:mvn/version "32.0.0-jre"}
-  com.github.luben/zstd-jni {:mvn/version "1.5.2-4"}
-  prismatic/schema {:mvn/version "1.2.1"}}
-
- :mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
+{:mvn/repos {"central" {:url "https://repo1.maven.org/maven2/"}
              "clojars" {:url "https://repo.clojars.org/"}}
 
  :aliases

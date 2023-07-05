@@ -1,31 +1,25 @@
 (ns deercreeklabs.baracus
   (:refer-clojure :exclude [byte-array])
   (:require
-    [clojure.string]
-    #?(:clj [clojure.java.io])
+   [clojure.string]
+   #?(:clj [clojure.java.io])
    #?(:cljs [deercreeklabs.baracus.cljs-utils :as u])
    #?(:cljs [goog.crypt :as gc])
    #?(:cljs [goog.crypt.base64 :as b64])
    #?(:cljs [goog.crypt.Md5])
    #?(:cljs [goog.crypt.Sha1])
-   #?(:cljs [goog.crypt.Sha256])
-   [schema.core :as s])
+   #?(:cljs [goog.crypt.Sha256]))
   #?(:clj
      (:import
-      (com.google.common.primitives Bytes)
-      (com.github.luben.zstd ZstdInputStream ZstdOutputStream)
       (java.io ByteArrayInputStream ByteArrayOutputStream)
       (java.security MessageDigest)
       (java.util Arrays Base64)
       (java.util.zip DeflaterOutputStream InflaterOutputStream)
       (java.util.zip GZIPInputStream GZIPOutputStream))))
 
-#?(:cljs
-   (set! *warn-on-infer* true))
+#?(:clj (set! *warn-on-reflection* true)
+   :cljs (set! *warn-on-infer* true))
 
-;;;;;;;;;;;;;;;;;;;; Plumatic Schemas ;;;;;;;;;;;;;;;;;;;;
-
-(def Nil (s/eq nil))
 
 (def ByteArray
   #?(:clj
@@ -33,69 +27,63 @@
      :cljs
      js/Int8Array))
 
-;;;;;;;;;;;;;;;;;;;; byte-arrays ;;;;;;;;;;;;;;;;;;;;
-
-(s/defn byte-array? :- s/Bool
+(defn byte-array?
   "Tests if the argument is a byte array"
-  [arg :- s/Any]
+  [arg]
   (when-not (nil? arg)
     (boolean (= ByteArray
                 (#?(:clj class :cljs type) arg)))))
 
-(s/defn byte-array :- ByteArray
+(defn byte-array
   "Construct a byte array.
    Args:
      - size-or-seq: An integer size or sequence of bytes."
-  ([size-or-seq :- s/Any]
+  ([size-or-seq]
    (#?(:clj clojure.core/byte-array
        :cljs u/byte-array-cljs) size-or-seq))
-  ([size :- s/Int
-    init-val-or-seq :- (s/if sequential?
-                         [s/Any]
-                         s/Any)]
+  ([size init-val-or-seq]
    (#?(:clj clojure.core/byte-array
        :cljs u/byte-array-cljs)
     size init-val-or-seq)))
 
-(s/defn concat-byte-arrays :- (s/maybe ByteArray)
+(defn concat-byte-arrays
   "Concatenate a sequence of byte arrays"
-  [arrays :- (s/maybe [(s/maybe ByteArray)])]
+  [arrays]
   (when arrays
     (let [arrays (keep identity arrays)]
       (case (count arrays)
         0 nil
         1 (first arrays)
-        #?(:clj (Bytes/concat (into-array arrays))
-           :cljs
-           (let [len (reduce (fn [acc ba]
-                               (+ acc (count ba)))
-                             0 arrays)
-                 ^js/Int8Array new-ba (byte-array len)]
-             (reduce (fn [pos ba]
-                       (.set new-ba ba pos)
-                       (+ pos (count ba)))
-                     0 arrays)
-             new-ba))))))
+        (let [len (reduce (fn [acc ba]
+                            (+ acc (count ba)))
+                          0 arrays)
+              ^#?(:cljs js/Int8Array :clj bytes) new-ba (byte-array len)]
+          (reduce (fn [pos ^#?(:cljs js/Int8Array :clj bytes) ba]
+                    #?(:clj (System/arraycopy ba 0 new-ba pos (count ba))
+                       :cljs (.set new-ba ba pos))
+                    (+ pos (count ba)))
+                  0
+                  arrays)
+          new-ba)))))
 
-(s/defn equivalent-byte-arrays? :- s/Bool
+(defn equivalent-byte-arrays?
   "Test if two byte arrays are equivalent. Normal Clojure = on byte arrays
    checks identity, not equality. Note that this is an O(n) operation."
-  [a :- ByteArray
-   b :- ByteArray]
-  #?(:clj (Arrays/equals a b)
+  [a b]
+  #?(:clj (Arrays/equals ^bytes a ^bytes b)
      :cljs (and
-             (= (count a) (count b))
-             (let [num (count a)]
-               (loop [i 0]
-                 (if (>= i num)
-                   true
-                   (if (= (aget ^bytes a i)
-                          (aget ^bytes b i))
-                     (recur (int (inc i)))
-                     false)))))))
+            (= (count a) (count b))
+            (let [num (count a)]
+              (loop [i 0]
+                (if (>= i num)
+                  true
+                  (if (= (aget ^bytes a i)
+                         (aget ^bytes b i))
+                    (recur (int (inc i)))
+                    false)))))))
 
-(s/defn byte-array->debug-str :- s/Str
-  [ba :- ByteArray]
+(defn byte-array->debug-str
+  [ba]
   #?(:clj (let [s (map (fn [b]
                          (cond->> b
                            (neg? b) (+ 256)
@@ -104,7 +92,7 @@
             (str "[" (clojure.string/join ", " s) "]"))
      :cljs (str ba)))
 
-(s/defn slice-byte-array :- (s/maybe ByteArray)
+(defn slice-byte-array
   "Return a slice of the given byte array.
    Args:
         - ba - Byte array to be sliced. Required.
@@ -113,15 +101,12 @@
              to the end of the array. The returned slice will not contain
              the byte at the end index position, i.e.: the slice fn uses
              a half-open interval."
-  ([ba :- (s/maybe ByteArray)]
+  ([ba]
    (when ba
      (slice-byte-array ba 0 (count ba))))
-  ([ba :- (s/maybe ByteArray)
-    start :- s/Num]
+  ([ba start]
    (slice-byte-array ba start (count ba)))
-  ([ba :- (s/maybe ByteArray)
-    start :- s/Num
-    end :- s/Num]
+  ([ba start end]
    (when (> start end)
      (throw (ex-info "Slice start is greater than end."
                      {:type :illegal-argument
@@ -134,9 +119,9 @@
         :cljs
         (.slice ^js/Int8Array ba start stop)))))
 
-(s/defn reverse-byte-array :- (s/maybe ByteArray)
+(defn reverse-byte-array
   "Returns a new byte array with bytes reversed."
-  [ba :- (s/maybe ByteArray)]
+  [ba]
   (when ba
     (let [num (count ba)
           last (dec num)
@@ -146,8 +131,8 @@
       new)))
 
 #?(:clj
-   (s/defn read-byte-array-from-file :- ByteArray
-     [filename :- s/Str]
+   (defn read-byte-array-from-file
+     [filename]
      (let [file ^java.io.File (clojure.java.io/file filename)
            result (byte-array (.length file))]
        (with-open [in (java.io.DataInputStream.
@@ -156,17 +141,15 @@
        result)))
 
 #?(:clj
-   (s/defn write-byte-array-to-file :- Nil
-     [filename :- s/Str
-      ba :- ByteArray]
+   (defn write-byte-array-to-file
+     [filename ba]
      (with-open [out (clojure.java.io/output-stream
                       (clojure.java.io/file filename))]
        (.write out ^bytes ba))
      nil))
 
-(s/defn byte-array->fragments :- (s/maybe [ByteArray])
-  [ba :- (s/maybe ByteArray)
-   fragment-size :- s/Int]
+(defn byte-array->fragments
+  [ba fragment-size]
   (when ba
     (if (zero? fragment-size)
       (slice-byte-array ba)
@@ -179,12 +162,11 @@
             (recur (int end-offset)
                    (conj output fragment))))))))
 
-(s/defn decode-int :- [(s/one s/Int :int)
-                       (s/optional ByteArray :unread-remainder)]
+(defn decode-int
   "Takes an variable-length zig-zag encoded byte array and reads an integer
    from it.
    Returns a vector of the integer and, optionally, any unread bytes."
-  [ba :- ByteArray]
+  [ba]
   (loop [n 0
          i 0
          out 0]
@@ -210,10 +192,10 @@
                        :subtype :var-len-num-more-than-32-bits
                        :i i}))))))))
 
-(s/defn encode-int :- ByteArray
+(defn encode-int
   "Encodes an integer using variable length zig-zag coding.
    Returns the encoded bytes."
-  [i :- s/Int]
+  [i]
   (let [zz-n (bit-xor (bit-shift-left i 1) (bit-shift-right i 31))]
     (loop [n zz-n
            out []]
@@ -224,17 +206,17 @@
           (recur (unsigned-bit-shift-right n 7)
                  (conj out b)))))))
 
-(s/defn byte-array->b64 :- (s/maybe s/Str)
+(defn byte-array->b64
   "Note that this does not return a URL-safe string."
-  [b :- (s/maybe ByteArray)]
+  [b]
   (when b
     #?(:clj
        (.encodeToString (Base64/getEncoder) b)
        :cljs
        (b64/encodeByteArray (js/Uint8Array. b)))))
 
-(s/defn b64->byte-array :- (s/maybe ByteArray)
-  [s :- (s/maybe s/Str)]
+(defn b64->byte-array
+  [s]
   (when s
     #?(:clj
        (.decode (Base64/getDecoder) ^String s)
@@ -242,16 +224,16 @@
        (-> (b64/decodeStringToUint8Array s)
            (js/Int8Array.)))))
 
-(s/defn byte-array->utf8 :- (s/maybe s/Str)
-  [ba :- (s/maybe ByteArray)]
+(defn byte-array->utf8
+  [ba]
   (when ba
     #?(:clj
        (String. #^bytes ba "UTF-8")
        :cljs
        (gc/utf8ByteArrayToString (js/Uint8Array. ba)))))
 
-(s/defn utf8->byte-array :- (s/maybe ByteArray)
-  [s :- (s/maybe s/Str)]
+(defn utf8->byte-array
+  [s]
   (when s
     #?(:clj
        (.getBytes ^String s "UTF-8")
@@ -271,20 +253,20 @@
       #?(:clj (String. ca)
          :cljs (.join ^js/Array ca "")))))
 
-(s/defn byte-array->hex-str :- (s/maybe s/Str)
-  [ba :- (s/maybe ByteArray)]
+(defn byte-array->hex-str
+  [ba]
   (byte-array->hex-str*
    {:alphabet [\0 \1 \2 \3 \4 \5 \6 \7 \8 \9 \a \b \c \d \e \f]
     :ba ba}))
 
-(s/defn byte-array->upper-hex-str :- (s/maybe s/Str)
-  [ba :- (s/maybe ByteArray)]
+(defn byte-array->upper-hex-str
+  [ba]
   (byte-array->hex-str*
    {:alphabet [\0 \1 \2 \3 \4 \5 \6 \7 \8 \9 \A \B \C \D \E \F]
     :ba ba}))
 
-(s/defn byte-array->b16-alpha-str :- (s/maybe s/Str)
-  [ba :- (s/maybe ByteArray)]
+(defn byte-array->b16-alpha-str
+  [ba]
   (byte-array->hex-str*
    {:alphabet [\a \b \c \d \c \e \f \g \h \i \j \k \l \m \n \o]
     :ba ba}))
@@ -300,8 +282,8 @@
   #?(:clj (Character/digit ^Character ch 16)
      :cljs (js/parseInt ch 16)))
 
-(s/defn hex-str->byte-array :- (s/maybe ByteArray)
-  [s :- (s/maybe s/Str)]
+(defn hex-str->byte-array
+  [s]
   (when s
     (let [str-len (count s)
           _ (when-not (even? str-len)
@@ -321,8 +303,7 @@
 
 ;;;;;;;;;;;;;;;;;;;; Hashing ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(s/defn sha256 :- ByteArray
-  [ba :- ByteArray]
+(defn sha256 [ba]
   #?(:clj
      (let [^MessageDigest md (MessageDigest/getInstance "SHA-256")]
        (.digest md ba))
@@ -331,8 +312,7 @@
        (.update hasher (js/Uint8Array. ba))
        (byte-array (.digest hasher)))))
 
-(s/defn sha1 :- ByteArray
-  [ba :- ByteArray]
+(defn sha1 [ba]
   #?(:clj
      (let [^MessageDigest md (MessageDigest/getInstance "SHA-1")]
        (.digest md ba))
@@ -341,8 +321,7 @@
        (.update hasher (js/Uint8Array. ba))
        (byte-array (.digest hasher)))))
 
-(s/defn md5 :- ByteArray
-  [ba :- ByteArray]
+(defn md5 [ba]
   #?(:clj
      (let [^MessageDigest md (MessageDigest/getInstance "MD5")]
        (.digest md ba))
@@ -355,8 +334,7 @@
 ;;; clj only; cljs is problematic due to js dependencies
 
 #?(:clj
-   (s/defn deflate :- (s/maybe ByteArray)
-     [data :- (s/maybe ByteArray)]
+   (defn deflate [data]
      (when data
        (let [os (ByteArrayOutputStream.)
              ds (DeflaterOutputStream. os)]
@@ -364,8 +342,7 @@
          (.close ds)
          (.toByteArray os)))))
 #?(:clj
-   (s/defn inflate :- (s/maybe ByteArray)
-     [deflated-data :- (s/maybe ByteArray)]
+   (defn inflate [deflated-data]
      (when deflated-data
        (let [os (ByteArrayOutputStream.)
              infs (InflaterOutputStream. os)]
@@ -394,41 +371,6 @@
            (if (= -1 bytes-read)
              (do
                (.close unzipper)
-               (.toByteArray baos))
-             (do
-               (.write baos (bytes buf-ba) 0 bytes-read)
-               (recur))))))))
-
-#?(:clj
-   (defn zstd-compress
-     ([ba]
-      ;; 3 is the default level in the Zstd reference implementation. The min
-      ;; in -7 and the max is 22. They warn against 20-22 as they use more
-      ;; memory. Wikipedia states "Compression speed can vary by a factor of 20
-      ;; or more between the fastest and slowest levels, while decompression is
-      ;; uniformly fast, varying by less than 20% between the fastest and
-      ;; slowest levels."
-      (zstd-compress ba 3))
-     ([ba ^Integer level]
-      (let [len (count ba)
-            baos ^ByteArrayOutputStream (ByteArrayOutputStream. len)
-            zos ^ZstdOutputStream (ZstdOutputStream. baos level)]
-        (.write zos (bytes ba) 0 len)
-        (.close zos)
-        (.toByteArray baos)))))
-
-#?(:clj
-   (defn zstd-decompress [ba]
-     (let [initial-buf-size (int (* 2 (count ba)))
-           bais ^ByteArrayInputStream (ByteArrayInputStream. ba)
-           zis ^ZstdInputStream (ZstdInputStream. bais)
-           baos ^ByteArrayOutputStream (ByteArrayOutputStream. initial-buf-size)
-           buf-ba (byte-array initial-buf-size)]
-       (loop []
-         (let [bytes-read (.read zis buf-ba)]
-           (if (= -1 bytes-read)
-             (do
-               (.close zis)
                (.toByteArray baos))
              (do
                (.write baos (bytes buf-ba) 0 bytes-read)
